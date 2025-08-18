@@ -1,6 +1,7 @@
 package com.hotelreservationsystem.hotelreservationsystem.controller;
 
 import com.hotelreservationsystem.hotelreservationsystem.model.User;
+import com.hotelreservationsystem.hotelreservationsystem.model.UserRole;
 import com.hotelreservationsystem.hotelreservationsystem.service.BookingService;
 import com.hotelreservationsystem.hotelreservationsystem.service.RoomService;
 import com.hotelreservationsystem.hotelreservationsystem.service.UserService;
@@ -176,6 +177,112 @@ public class PageController {
     public String paymentCancel(Model model) {
         model.addAttribute("message", "Payment was cancelled. You can try again or contact support.");
         return "payment-cancel";
+    }
+
+    // My Bookings page
+    @GetMapping("/my-bookings")
+    public String myBookings(Model model, Authentication authentication) {
+        // Check if user is logged in
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/auth/login?returnUrl=/my-bookings";
+        }
+
+        String email = authentication.getName();
+        User user = userService.findByEmail(email);
+
+        if (user != null) {
+            try {
+                model.addAttribute("bookings", bookingService.getBookingsByCustomer(user.getUserId()));
+                model.addAttribute("user", user);
+            } catch (Exception e) {
+                model.addAttribute("bookings", java.util.Collections.emptyList());
+                model.addAttribute("errorMessage", "Unable to load your bookings at this time.");
+            }
+        }
+
+        return "my-bookings";
+    }
+
+    // Profile page
+    @GetMapping("/profile")
+    public String profile(Model model, Authentication authentication) {
+        // Check if user is logged in
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/auth/login?returnUrl=/profile";
+        }
+
+        String email = authentication.getName();
+        User user = userService.findByEmail(email);
+        model.addAttribute("user", user);
+
+        return "profile";
+    }
+
+    // Admin Dashboard
+    @GetMapping("/admin/dashboard")
+    public String adminDashboard(Model model, Authentication authentication) {
+        // Check if user is logged in and is admin
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/auth/login";
+        }
+
+        String email = authentication.getName();
+        User user = userService.findByEmail(email);
+
+        if (user == null || !UserRole.ADMIN.equals(user.getRole())) {
+            return "redirect:/dashboard?error=access_denied";
+        }
+
+        // Add admin dashboard data
+        model.addAttribute("user", user);
+        model.addAttribute("allBookings", bookingService.getAllBookings());
+        model.addAttribute("todaysCheckIns", bookingService.getTodaysCheckIns());
+        model.addAttribute("todaysCheckOuts", bookingService.getTodaysCheckOuts());
+        model.addAttribute("totalRooms", roomService.getTotalRoomsCount());
+        model.addAttribute("availableRooms", roomService.getAvailableRoomsCount());
+
+        return "admin/dashboard";
+    }
+
+    // Admin Rooms Management
+    @GetMapping("/admin/rooms")
+    public String adminRooms(Model model, Authentication authentication) {
+        // Check if user is logged in and is admin
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/auth/login";
+        }
+
+        String email = authentication.getName();
+        User user = userService.findByEmail(email);
+
+        if (user == null || !UserRole.ADMIN.equals(user.getRole())) {
+            return "redirect:/dashboard?error=access_denied";
+        }
+
+        model.addAttribute("rooms", roomService.getAllRooms());
+        model.addAttribute("roomTypes", roomService.getAllRoomTypes());
+
+        return "admin/rooms";
+    }
+
+    // Admin Bookings Management
+    @GetMapping("/admin/bookings")
+    public String adminBookings(Model model, Authentication authentication) {
+        // Check if user is logged in and is admin
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/auth/login";
+        }
+
+        String email = authentication.getName();
+        User user = userService.findByEmail(email);
+
+        if (user == null || !UserRole.ADMIN.equals(user.getRole())) {
+            return "redirect:/dashboard?error=access_denied";
+        }
+
+        model.addAttribute("bookings", bookingService.getAllBookings());
+
+        return "admin/bookings";
     }
 
     // Terms and conditions page

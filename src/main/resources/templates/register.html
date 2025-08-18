@@ -1,11 +1,37 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Hotel Reservation System</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<div th:fragment="content">
+<!-- Header -->
+<header class="header">
     <div class="container">
+        <nav class="navbar">
+            <a href="/" class="logo">🏨 Hotel Reservation</a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/rooms">Rooms</a></li>
+                <li><a href="/auth/login" class="btn btn-primary">Login</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main>
+    <div class="container">
+        <!-- Alert Messages -->
+        <div th:if="${successMessage}" class="alert alert-success">
+            <span th:text="${successMessage}">Success message</span>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-error">
+            <span th:text="${errorMessage}">Error message</span>
+        </div>
+
         <div class="form-container">
             <h2 class="text-center mb-3">Create Your Account</h2>
             <p class="text-center mb-3">Join us to enjoy exclusive benefits and seamless booking experience</p>
@@ -170,103 +196,106 @@
             </form>
         </div>
     </div>
-</div>
+</main>
 
-<!-- Additional JavaScript for registration -->
-<th:block th:fragment="additional-js">
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Password confirmation validation
-            const password = document.getElementById('password');
-            const confirmPassword = document.getElementById('confirmPassword');
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <p>&copy; 2025 Hotel Reservation System. All rights reserved.</p>
+        <p>Made with ❤️ for hospitality excellence</p>
+    </div>
+</footer>
 
-            function validatePasswordMatch() {
-                if (confirmPassword.value && password.value !== confirmPassword.value) {
-                    showFieldError(confirmPassword, 'Passwords do not match');
-                    return false;
-                } else {
-                    clearFieldError(confirmPassword);
-                    return true;
-                }
+<script src="/js/main.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Password confirmation validation
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+
+        function validatePasswordMatch() {
+            if (confirmPassword.value && password.value !== confirmPassword.value) {
+                showFieldError(confirmPassword, 'Passwords do not match');
+                return false;
+            } else {
+                clearFieldError(confirmPassword);
+                return true;
+            }
+        }
+
+        password.addEventListener('input', validatePasswordMatch);
+        confirmPassword.addEventListener('input', validatePasswordMatch);
+
+        // Set maximum date for date of birth (18 years ago)
+        const today = new Date();
+        const eighteenYearsAgo = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+        document.getElementById('dateOfBirth').max = eighteenYearsAgo.toISOString().split('T')[0];
+
+        // Form submission with additional validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+
+            // Check password match
+            if (!validatePasswordMatch()) {
+                isValid = false;
             }
 
-            password.addEventListener('input', validatePasswordMatch);
-            confirmPassword.addEventListener('input', validatePasswordMatch);
+            // Check terms acceptance
+            if (!document.getElementById('agreeToTerms').checked) {
+                alert('Please accept the Terms and Conditions to continue');
+                isValid = false;
+            }
 
-            // Set maximum date for date of birth (18 years ago)
-            const today = new Date();
-            const eighteenYearsAgo = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-            document.getElementById('dateOfBirth').max = eighteenYearsAgo.toISOString().split('T')[0];
-
-            // Form submission with additional validation
-            const form = document.querySelector('form');
-            form.addEventListener('submit', function(e) {
-                let isValid = true;
-
-                // Check password match
-                if (!validatePasswordMatch()) {
-                    isValid = false;
-                }
-
-                // Check terms acceptance
-                if (!document.getElementById('agreeToTerms').checked) {
-                    alert('Please accept the Terms and Conditions to continue');
-                    isValid = false;
-                }
-
-                if (!isValid) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            });
+            if (!isValid) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
         });
+    });
 
-        function showFieldError(field, message) {
-            clearFieldError(field);
+    function showFieldError(field, message) {
+        clearFieldError(field);
 
-            field.classList.add('error');
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'field-error';
-            errorDiv.textContent = message;
-            errorDiv.style.color = '#e74c3c';
-            errorDiv.style.fontSize = '0.9rem';
-            errorDiv.style.marginTop = '0.25rem';
+        field.classList.add('error');
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'field-error';
+        errorDiv.textContent = message;
+        errorDiv.style.color = '#e74c3c';
+        errorDiv.style.fontSize = '0.9rem';
+        errorDiv.style.marginTop = '0.25rem';
 
-            field.parentNode.appendChild(errorDiv);
-        }
+        field.parentNode.appendChild(errorDiv);
+    }
 
-        function clearFieldError(field) {
-            field.classList.remove('error');
-            const existingError = field.parentNode.querySelector('.field-error');
-            if (existingError) {
-                existingError.remove();
-            }
+    function clearFieldError(field) {
+        field.classList.remove('error');
+        const existingError = field.parentNode.querySelector('.field-error');
+        if (existingError) {
+            existingError.remove();
         }
-    </script>
-</th:block>
+    }
+</script>
 
-<!-- Additional CSS for registration page -->
-<th:block th:fragment="additional-css">
-    <style>
-        .flex {
-            display: flex;
-        }
-        .items-center {
-            align-items: center;
-        }
-        .gap-2 {
-            gap: 0.5rem;
-        }
-        .field-error {
-            color: #e74c3c;
-            font-size: 0.9rem;
-            margin-top: 0.25rem;
-        }
-        .form-control.error {
-            border-color: #e74c3c;
-            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
-        }
-    </style>
-</th:block>
+<style>
+    .flex {
+        display: flex;
+    }
+    .items-center {
+        align-items: center;
+    }
+    .gap-2 {
+        gap: 0.5rem;
+    }
+    .field-error {
+        color: #e74c3c;
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+    .form-control.error {
+        border-color: #e74c3c;
+        box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+    }
+</style>
 </body>
 </html>

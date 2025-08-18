@@ -50,7 +50,6 @@ public class AuthController {
         // Check if email already exists
         if (userService.existsByEmail(registrationDto.getEmail())) {
             result.rejectValue("email", "error.user", "Email already exists");
-            return "register";
         }
 
         // Check if username already exists
@@ -83,6 +82,7 @@ public class AuthController {
     @GetMapping("/login")
     public String showLoginForm(@RequestParam(value = "error", required = false) String error,
                                 @RequestParam(value = "logout", required = false) String logout,
+                                @RequestParam(value = "returnUrl", required = false) String returnUrl,
                                 Model model) {
 
         if (error != null) {
@@ -91,6 +91,10 @@ public class AuthController {
 
         if (logout != null) {
             model.addAttribute("successMessage", "You have been logged out successfully");
+        }
+
+        if (returnUrl != null) {
+            model.addAttribute("returnUrl", returnUrl);
         }
 
         return "login";

@@ -1,351 +1,431 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{layout :: layout}">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Hotel Reservation System</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <div th:fragment="content">
-        <div class="container">
-            <!-- Welcome Section -->
-            <section class="mt-2 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h1>Welcome back, <span sec:authentication="principal.firstName" th:text="${user != null ? user.firstName : 'Guest'}">User</span>! 🎉</h1>
-                        <p>Ready to book your next amazing stay? Explore our rooms and find the perfect accommodation for you.</p>
-                        <div class="mt-2">
-                            <a href="/rooms" class="btn btn-primary">🏨 Browse Rooms</a>
-                            <a href="/my-bookings" class="btn btn-secondary">📋 My Bookings</a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Quick Actions -->
-            <section class="mb-3">
-                <h2>Quick Actions</h2>
-                <div class="rooms-grid">
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <h3>🔍 Check Availability</h3>
-                            <p>Search for available rooms for your preferred dates</p>
-                            <a href="/rooms" class="btn btn-primary">Search Rooms</a>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <h3>📅 My Bookings</h3>
-                            <p>View and manage your current and past reservations</p>
-                            <a href="/my-bookings" class="btn btn-secondary">View Bookings</a>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <h3>👤 Profile</h3>
-                            <p>Update your personal information and preferences</p>
-                            <a href="/profile" class="btn btn-secondary">Edit Profile</a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Featured Rooms -->
-            <section class="mb-3">
-                <h2>Featured Rooms</h2>
-                <div class="rooms-grid" id="featuredRooms">
-                    <!-- Featured rooms will be loaded here -->
-                    <div class="room-card">
-                        <img src="/images/rooms/deluxe.jpg" alt="Deluxe Room" class="room-image" onerror="this.src='/images/room-default.jpg'">
-                        <div class="room-info">
-                            <h3 class="room-title">Deluxe Room</h3>
-                            <p>Luxury accommodation with premium amenities and stunning views.</p>
-                            <div class="room-amenities">
-                                <span class="amenity-tag">WiFi</span>
-                                <span class="amenity-tag">AC</span>
-                                <span class="amenity-tag">Balcony</span>
-                                <span class="amenity-tag">Room Service</span>
-                            </div>
-                            <div class="room-price">LKR 18,000.00 / night</div>
-                            <a href="/rooms?type=Deluxe Room" class="btn btn-primary">View Details</a>
-                        </div>
-                    </div>
-                    
-                    <div class="room-card">
-                        <img src="/images/rooms/family-suite.jpg" alt="Family Suite" class="room-image" onerror="this.src='/images/room-default.jpg'">
-                        <div class="room-info">
-                            <h3 class="room-title">Family Suite</h3>
-                            <p>Spacious suite perfect for families with separate living area.</p>
-                            <div class="room-amenities">
-                                <span class="amenity-tag">WiFi</span>
-                                <span class="amenity-tag">AC</span>
-                                <span class="amenity-tag">Kitchenette</span>
-                                <span class="amenity-tag">Sofa Bed</span>
-                            </div>
-                            <div class="room-price">LKR 25,000.00 / night</div>
-                            <a href="/rooms?type=Family Suite" class="btn btn-primary">View Details</a>
-                        </div>
-                    </div>
-                    
-                    <div class="room-card">
-                        <img src="/images/rooms/presidential.jpg" alt="Presidential Suite" class="room-image" onerror="this.src='/images/room-default.jpg'">
-                        <div class="room-info">
-                            <h3 class="room-title">Presidential Suite</h3>
-                            <p>Ultimate luxury accommodation with panoramic views and premium services.</p>
-                            <div class="room-amenities">
-                                <span class="amenity-tag">WiFi</span>
-                                <span class="amenity-tag">Jacuzzi</span>
-                                <span class="amenity-tag">Butler Service</span>
-                                <span class="amenity-tag">Balcony</span>
-                            </div>
-                            <div class="room-price">LKR 45,000.00 / night</div>
-                            <a href="/rooms?type=Presidential Suite" class="btn btn-primary">View Details</a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Recent Bookings -->
-            <section class="mb-3" th:if="${recentBookings != null and !recentBookings.isEmpty()}">
-                <h2>Recent Bookings</h2>
-                <div class="card">
-                    <div class="card-body">
-                        <div class="table">
-                            <table style="width: 100%;">
-                                <thead>
-                                    <tr>
-                                        <th>Booking Reference</th>
-                                        <th>Room</th>
-                                        <th>Check-in</th>
-                                        <th>Check-out</th>
-                                        <th>Status</th>
-                                        <th>Amount</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr th:each="booking : ${recentBookings}">
-                                        <td th:text="${booking.bookingReference}">BK123456</td>
-                                        <td th:text="${booking.roomNumber + ' (' + booking.roomTypeName + ')'}">101 (Deluxe)</td>
-                                        <td th:text="${#temporals.format(booking.checkInDate, 'MMM dd, yyyy')}">Jan 15, 2025</td>
-                                        <td th:text="${#temporals.format(booking.checkOutDate, 'MMM dd, yyyy')}">Jan 18, 2025</td>
-                                        <td>
-                                            <span class="amenity-tag" 
-                                                  th:classappend="${booking.bookingStatus == 'CONFIRMED' ? 'confirmed' : 
-                                                                 booking.bookingStatus == 'PENDING' ? 'pending' : 
-                                                                 booking.bookingStatus == 'CANCELLED' ? 'cancelled' : ''}"
-                                                  th:text="${booking.bookingStatus}">CONFIRMED</span>
-                                        </td>
-                                        <td th:text="'LKR ' + ${#numbers.formatDecimal(booking.totalAmount, 1, 2)}">LKR 54,000.00</td>
-                                        <td>
-                                            <a th:href="@{'/booking/' + ${booking.bookingId}}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">View</a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="text-center mt-2">
-                            <a href="/my-bookings" class="btn btn-primary">View All Bookings</a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- No Bookings Message -->
-            <section class="mb-3" th:if="${recentBookings == null or recentBookings.isEmpty()}">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h3>🏨 Ready for Your First Booking?</h3>
-                        <p>You haven't made any bookings yet. Start exploring our amazing rooms and make your first reservation!</p>
-                        <a href="/rooms" class="btn btn-primary">Browse Available Rooms</a>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Quick Search -->
-            <section class="search-container mb-3">
-                <h2 class="text-center mb-2">Quick Room Search</h2>
-                <form id="dashboardSearchForm" class="search-form" th:action="@{/rooms}" method="get">
-                    <div class="form-group">
-                        <label for="checkInDate">Check-in Date</label>
-                        <input type="date" id="checkInDate" name="checkInDate" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="checkOutDate">Check-out Date</label>
-                        <input type="date" id="checkOutDate" name="checkOutDate" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="guests">Guests</label>
-                        <select id="guests" name="guests" class="form-control" required>
-                            <option value="">Select guests</option>
-                            <option value="1">1 Guest</option>
-                            <option value="2">2 Guests</option>
-                            <option value="3">3 Guests</option>
-                            <option value="4">4 Guests</option>
-                            <option value="5">5 Guests</option>
-                            <option value="6">6 Guests</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="roomType">Room Type</label>
-                        <select id="roomType" name="roomType" class="form-control">
-                            <option value="">Any Type</option>
-                            <option value="Standard Single">Standard Single</option>
-                            <option value="Standard Double">Standard Double</option>
-                            <option value="Deluxe Room">Deluxe Room</option>
-                            <option value="Family Suite">Family Suite</option>
-                            <option value="Presidential Suite">Presidential Suite</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary form-control">🔍 Search Rooms</button>
-                    </div>
-                </form>
-            </section>
-            
-            <!-- Hotel Information -->
-            <section class="mb-3">
-                <h2>About Our Hotel</h2>
-                <div class="rooms-grid">
-                    <div class="card">
-                        <div class="card-body">
-                            <h4>🏨 Luxury Accommodation</h4>
-                            <p>Experience world-class hospitality with our premium rooms and suites, each designed for your comfort and convenience.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-body">
-                            <h4>🍽️ Fine Dining</h4>
-                            <p>Enjoy exquisite cuisine at our restaurant featuring both local Sri Lankan delicacies and international favorites.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-body">
-                            <h4>🏊‍♂️ Premium Facilities</h4>
-                            <p>Relax and unwind with our swimming pool, spa services, fitness center, and business facilities.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+<!-- Header -->
+<header class="header">
+    <div class="container">
+        <nav class="navbar">
+            <!-- Logo -->
+            <a href="/" class="logo">🏨 Hotel Reservation</a>
+
+            <!-- Navigation Links -->
+            <ul class="nav-links">
+                <!-- Public Links -->
+                <li><a href="/">Home</a></li>
+                <li><a href="/rooms">Rooms</a></li>
+
+                <!-- Authenticated User Links -->
+                <th:block sec:authorize="isAuthenticated()">
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/my-bookings">My Bookings</a></li>
+                    <li><a href="/profile">Profile</a></li>
+                </th:block>
+
+                <!-- Admin Links -->
+                <th:block sec:authorize="hasRole('ADMIN')">
+                    <li><a href="/admin/dashboard">Admin</a></li>
+                    <li><a href="/admin/rooms">Manage Rooms</a></li>
+                    <li><a href="/admin/bookings">All Bookings</a></li>
+                </th:block>
+
+                <!-- Authentication Links -->
+                <th:block sec:authorize="isAnonymous()">
+                    <li><a href="/auth/login" class="btn btn-primary">Login</a></li>
+                    <li><a href="/auth/register" class="btn btn-success">Register</a></li>
+                </th:block>
+
+                <th:block sec:authorize="isAuthenticated()">
+                    <li>
+                        <span>Welcome, <span sec:authentication="principal.firstName" th:text="${user != null ? user.firstName : 'User'}">User</span>!</span>
+                    </li>
+                    <li>
+                        <form th:action="@{/auth/logout}" method="post" style="display: inline;">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <button type="submit" class="btn btn-secondary">Logout</button>
+                        </form>
+                    </li>
+                </th:block>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main>
+    <!-- Alert Messages -->
+    <div class="container">
+        <!-- Success Messages -->
+        <div th:if="${successMessage}" class="alert alert-success">
+            <span th:text="${successMessage}">Success message</span>
+        </div>
+
+        <!-- Error Messages -->
+        <div th:if="${errorMessage}" class="alert alert-error">
+            <span th:text="${errorMessage}">Error message</span>
+        </div>
+
+        <!-- Warning Messages -->
+        <div th:if="${warningMessage}" class="alert alert-warning">
+            <span th:text="${warningMessage}">Warning message</span>
+        </div>
+
+        <!-- Info Messages -->
+        <div th:if="${infoMessage}" class="alert alert-info">
+            <span th:text="${infoMessage}">Info message</span>
         </div>
     </div>
-    
-    <!-- Additional JavaScript for dashboard -->
-    <th:block th:fragment="additional-js">
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Set up date pickers
-                const today = new Date().toISOString().split('T')[0];
-                const checkInDate = document.getElementById('checkInDate');
-                const checkOutDate = document.getElementById('checkOutDate');
-                
-                checkInDate.min = today;
-                checkOutDate.min = today;
-                
-                // Set default dates (today and tomorrow)
-                checkInDate.value = today;
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                checkOutDate.value = tomorrow.toISOString().split('T')[0];
-                
-                // Update checkout date when checkin changes
-                checkInDate.addEventListener('change', function() {
-                    checkOutDate.min = this.value;
-                    if (checkOutDate.value && checkOutDate.value <= this.value) {
-                        const nextDay = new Date(this.value);
-                        nextDay.setDate(nextDay.getDate() + 1);
-                        checkOutDate.value = nextDay.toISOString().split('T')[0];
-                    }
-                });
-                
-                // Load user's booking statistics if available
-                loadBookingStats();
+
+    <div class="container">
+        <!-- Welcome Section -->
+        <section class="mt-2 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h1>Welcome back, <span th:text="${user != null ? user.firstName : 'Guest'}">User</span>! 🎉</h1>
+                    <p>Ready to book your next amazing stay? Explore our rooms and find the perfect accommodation for you.</p>
+                    <div class="mt-2">
+                        <a href="/rooms" class="btn btn-primary">🏨 Browse Rooms</a>
+                        <a href="/my-bookings" class="btn btn-secondary">📋 My Bookings</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="mb-3">
+            <h2>Quick Actions</h2>
+            <div class="rooms-grid">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3>🔍 Check Availability</h3>
+                        <p>Search for available rooms for your preferred dates</p>
+                        <a href="/rooms" class="btn btn-primary">Search Rooms</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3>📅 My Bookings</h3>
+                        <p>View and manage your current and past reservations</p>
+                        <a href="/my-bookings" class="btn btn-secondary">View Bookings</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3>👤 Profile</h3>
+                        <p>Update your personal information and preferences</p>
+                        <a href="/profile" class="btn btn-secondary">Edit Profile</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Rooms -->
+        <section class="mb-3">
+            <h2>Featured Rooms</h2>
+            <div class="rooms-grid" id="featuredRooms">
+                <!-- Featured rooms will be loaded here -->
+                <div class="room-card">
+                    <img src="/images/rooms/deluxe.jpg" alt="Deluxe Room" class="room-image" onerror="this.src='/images/room-default.jpg'">
+                    <div class="room-info">
+                        <h3 class="room-title">Deluxe Room</h3>
+                        <p>Luxury accommodation with premium amenities and stunning views.</p>
+                        <div class="room-amenities">
+                            <span class="amenity-tag">WiFi</span>
+                            <span class="amenity-tag">AC</span>
+                            <span class="amenity-tag">Balcony</span>
+                            <span class="amenity-tag">Room Service</span>
+                        </div>
+                        <div class="room-price">LKR 18,000.00 / night</div>
+                        <a href="/rooms?type=Deluxe Room" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+
+                <div class="room-card">
+                    <img src="/images/rooms/family-suite.jpg" alt="Family Suite" class="room-image" onerror="this.src='/images/room-default.jpg'">
+                    <div class="room-info">
+                        <h3 class="room-title">Family Suite</h3>
+                        <p>Spacious suite perfect for families with separate living area.</p>
+                        <div class="room-amenities">
+                            <span class="amenity-tag">WiFi</span>
+                            <span class="amenity-tag">AC</span>
+                            <span class="amenity-tag">Kitchenette</span>
+                            <span class="amenity-tag">Sofa Bed</span>
+                        </div>
+                        <div class="room-price">LKR 25,000.00 / night</div>
+                        <a href="/rooms?type=Family Suite" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+
+                <div class="room-card">
+                    <img src="/images/rooms/presidential.jpg" alt="Presidential Suite" class="room-image" onerror="this.src='/images/room-default.jpg'">
+                    <div class="room-info">
+                        <h3 class="room-title">Presidential Suite</h3>
+                        <p>Ultimate luxury accommodation with panoramic views and premium services.</p>
+                        <div class="room-amenities">
+                            <span class="amenity-tag">WiFi</span>
+                            <span class="amenity-tag">Jacuzzi</span>
+                            <span class="amenity-tag">Butler Service</span>
+                            <span class="amenity-tag">Balcony</span>
+                        </div>
+                        <div class="room-price">LKR 45,000.00 / night</div>
+                        <a href="/rooms?type=Presidential Suite" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Bookings -->
+        <section class="mb-3" th:if="${recentBookings != null and !recentBookings.isEmpty()}">
+            <h2>Recent Bookings</h2>
+            <div class="card">
+                <div class="card-body">
+                    <div class="table">
+                        <table style="width: 100%;">
+                            <thead>
+                            <tr>
+                                <th>Booking Reference</th>
+                                <th>Room</th>
+                                <th>Check-in</th>
+                                <th>Check-out</th>
+                                <th>Status</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="booking : ${recentBookings}">
+                                <td th:text="${booking.bookingReference}">BK123456</td>
+                                <td th:text="${booking.roomNumber + ' (' + booking.roomType + ')'}">101 (Deluxe)</td>
+                                <td th:text="${#temporals.format(booking.checkInDate, 'MMM dd, yyyy')}">Jan 15, 2025</td>
+                                <td th:text="${#temporals.format(booking.checkOutDate, 'MMM dd, yyyy')}">Jan 18, 2025</td>
+                                <td>
+                                        <span class="amenity-tag"
+                                              th:classappend="${booking.bookingStatus == 'CONFIRMED' ? 'confirmed' :
+                                                             booking.bookingStatus == 'PENDING' ? 'pending' :
+                                                             booking.bookingStatus == 'CANCELLED' ? 'cancelled' : ''}"
+                                              th:text="${booking.bookingStatus}">CONFIRMED</span>
+                                </td>
+                                <td th:text="'LKR ' + ${#numbers.formatDecimal(booking.totalAmount, 1, 2)}">LKR 54,000.00</td>
+                                <td>
+                                    <a th:href="@{'/booking/' + ${booking.bookingId}}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">View</a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-2">
+                        <a href="/my-bookings" class="btn btn-primary">View All Bookings</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- No Bookings Message -->
+        <section class="mb-3" th:if="${recentBookings == null or recentBookings.isEmpty()}">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3>🏨 Ready for Your First Booking?</h3>
+                    <p>You haven't made any bookings yet. Start exploring our amazing rooms and make your first reservation!</p>
+                    <a href="/rooms" class="btn btn-primary">Browse Available Rooms</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Search -->
+        <section class="search-container mb-3">
+            <h2 class="text-center mb-2">Quick Room Search</h2>
+            <form id="dashboardSearchForm" class="search-form" th:action="@{/rooms}" method="get">
+                <div class="form-group">
+                    <label for="checkInDate">Check-in Date</label>
+                    <input type="date" id="checkInDate" name="checkInDate" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="checkOutDate">Check-out Date</label>
+                    <input type="date" id="checkOutDate" name="checkOutDate" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="guests">Guests</label>
+                    <select id="guests" name="guests" class="form-control" required>
+                        <option value="">Select guests</option>
+                        <option value="1">1 Guest</option>
+                        <option value="2">2 Guests</option>
+                        <option value="3">3 Guests</option>
+                        <option value="4">4 Guests</option>
+                        <option value="5">5 Guests</option>
+                        <option value="6">6 Guests</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="roomType">Room Type</label>
+                    <select id="roomType" name="roomType" class="form-control">
+                        <option value="">Any Type</option>
+                        <option value="Standard Single">Standard Single</option>
+                        <option value="Standard Double">Standard Double</option>
+                        <option value="Deluxe Room">Deluxe Room</option>
+                        <option value="Family Suite">Family Suite</option>
+                        <option value="Presidential Suite">Presidential Suite</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="btn btn-primary form-control">🔍 Search Rooms</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Hotel Information -->
+        <section class="mb-3">
+            <h2>About Our Hotel</h2>
+            <div class="rooms-grid">
+                <div class="card">
+                    <div class="card-body">
+                        <h4>🏨 Luxury Accommodation</h4>
+                        <p>Experience world-class hospitality with our premium rooms and suites, each designed for your comfort and convenience.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h4>🍽️ Fine Dining</h4>
+                        <p>Enjoy exquisite cuisine at our restaurant featuring both local Sri Lankan delicacies and international favorites.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h4>🏊‍♂️ Premium Facilities</h4>
+                        <p>Relax and unwind with our swimming pool, spa services, fitness center, and business facilities.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <p>&copy; 2025 Hotel Reservation System. All rights reserved.</p>
+        <p>Made with ❤️ for hospitality excellence</p>
+    </div>
+</footer>
+
+<!-- JavaScript -->
+<script src="/js/main.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set up date pickers
+        const today = new Date().toISOString().split('T')[0];
+        const checkInDate = document.getElementById('checkInDate');
+        const checkOutDate = document.getElementById('checkOutDate');
+
+        checkInDate.min = today;
+        checkOutDate.min = today;
+
+        // Set default dates (today and tomorrow)
+        checkInDate.value = today;
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        checkOutDate.value = tomorrow.toISOString().split('T')[0];
+
+        // Update checkout date when checkin changes
+        checkInDate.addEventListener('change', function() {
+            checkOutDate.min = this.value;
+            if (checkOutDate.value && checkOutDate.value <= this.value) {
+                const nextDay = new Date(this.value);
+                nextDay.setDate(nextDay.getDate() + 1);
+                checkOutDate.value = nextDay.toISOString().split('T')[0];
+            }
+        });
+
+        // Load user's booking statistics if available
+        loadBookingStats();
+    });
+
+    function loadBookingStats() {
+        fetch('/api/dashboard/user-stats')
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Stats not available');
+            })
+            .then(data => {
+                updateUserStats(data);
+            })
+            .catch(error => {
+                console.log('User stats not available:', error);
             });
-            
-            function loadBookingStats() {
-                fetch('/api/dashboard/user-stats')
-                    .then(response => {
-                        if (response.ok) {
-                            return response.json();
-                        }
-                        throw new Error('Stats not available');
-                    })
-                    .then(data => {
-                        updateUserStats(data);
-                    })
-                    .catch(error => {
-                        console.log('User stats not available:', error);
-                    });
+    }
+
+    function updateUserStats(stats) {
+        // Update any stat elements if they exist
+        if (stats.totalBookings !== undefined) {
+            const totalBookingsElement = document.getElementById('userTotalBookings');
+            if (totalBookingsElement) {
+                totalBookingsElement.textContent = stats.totalBookings;
             }
-            
-            function updateUserStats(stats) {
-                // Update any stat elements if they exist
-                if (stats.totalBookings !== undefined) {
-                    const totalBookingsElement = document.getElementById('userTotalBookings');
-                    if (totalBookingsElement) {
-                        totalBookingsElement.textContent = stats.totalBookings;
-                    }
-                }
-                
-                if (stats.upcomingBookings !== undefined) {
-                    const upcomingElement = document.getElementById('userUpcomingBookings');
-                    if (upcomingElement) {
-                        upcomingElement.textContent = stats.upcomingBookings;
-                    }
-                }
+        }
+
+        if (stats.upcomingBookings !== undefined) {
+            const upcomingElement = document.getElementById('userUpcomingBookings');
+            if (upcomingElement) {
+                upcomingElement.textContent = stats.upcomingBookings;
             }
-        </script>
-    </th:block>
-    
-    <!-- Additional CSS for dashboard -->
-    <th:block th:fragment="additional-css">
-        <style>
-            .amenity-tag.confirmed {
-                background-color: #d4edda;
-                color: #155724;
-            }
-            
-            .amenity-tag.pending {
-                background-color: #fff3cd;
-                color: #856404;
-            }
-            
-            .amenity-tag.cancelled {
-                background-color: #f8d7da;
-                color: #721c24;
-            }
-            
-            .room-card {
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-            }
-            
-            .room-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            }
-            
-            .card {
-                animation: fadeInUp 0.6s ease;
-            }
-            
-            @keyframes fadeInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-        </style>
-    </th:block>
+        }
+    }
+</script>
+
+<style>
+    .amenity-tag.confirmed {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .amenity-tag.pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .amenity-tag.cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .room-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .room-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .card {
+        animation: fadeInUp 0.6s ease;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 </body>
 </html>
