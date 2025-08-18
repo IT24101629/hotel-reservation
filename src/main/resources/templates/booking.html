@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{layout :: layout}">
+<head>
+    <title>Book Your Stay - Hotel Reservation System</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="container">
+            <!-- Page Header -->
+            <section class="mt-2 mb-3 text-center">
+                <h1>📅 Complete Your Booking</h1>
+                <p>You're just one step away from confirming your reservation</p>
+            </section>
+            
+            <!-- Booking Container -->
+            <div class="booking-container">
+                <!-- Main Booking Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>🏨 Booking Details</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="bookingForm" th:action="@{/booking/submit}" method="post" data-validate="true">
+                            <!-- CSRF Token -->
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            
+                            <!-- Hidden fields for selected room data -->
+                            <input type="hidden" id="roomId" name="roomId">
+                            <input type="hidden" id="selectedRoomData" name="selectedRoomData">
+                            
+                            <!-- Room Selection Display -->
+                            <div class="form-group">
+                                <h3>Selected Room</h3>
+                                <div id="selectedRoomDisplay" class="card">
+                                    <div class="card-body">
+                                        <div id="roomSelectionPlaceholder">
+                                            <p class="text-center">🏨 Please select a room from the <a href="/rooms">rooms page</a> first</p>
+                                        </div>
+                                        <div id="selectedRoomInfo" style="display: none;">
+                                            <h4 id="selectedRoomType">Room Type</h4>
+                                            <p><strong>Room Number:</strong> <span id="selectedRoomNumber">-</span></p>
+                                            <p><strong>Price per night:</strong> <span id="roomPricePerNight">-</span></p>
+                                            <p><strong>Max Occupancy:</strong> <span id="selectedMaxOccupancy">-</span></p>
+                                            <button type="button" class="btn btn-secondary" onclick="changeRoom()">🔄 Change Room</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Stay Details -->
+                            <div class="form-group">
+                                <h3>Stay Details</h3>
+                                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <div>
+                                        <label for="checkInDate">Check-in Date <span style="color: red;">*</span></label>
+                                        <input type="date" 
+                                               id="checkInDate" 
+                                               name="checkInDate" 
+                                               class="form-control" 
+                                               required>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="checkOutDate">Check-out Date <span style="color: red;">*</span></label>
+                                        <input type="date" 
+                                               id="checkOutDate" 
+                                               name="checkOutDate" 
+                                               class="form-control" 
+                                               required>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-2">
+                                    <label for="numberOfGuests">Number of Guests <span style="color: red;">*</span></label>
+                                    <select id="numberOfGuests" name="numberOfGuests" class="form-control" required>
+                                        <option value="">Select number of guests</option>
+                                        <option value="1">1 Guest</option>
+                                        <option value="2">2 Guests</option>
+                                        <option value="3">3 Guests</option>
+                                        <option value="4">4 Guests</option>
+                                        <option value="5">5 Guests</option>
+                                        <option value="6">6 Guests</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mt-2">
+                                    <p><strong>Duration:</strong> <span id="stayDuration">Please select dates</span></p>
+                                </div>
+                            </div>
+                            
+                            <!-- Guest Information -->
+                            <div class="form-group">
+                                <h3>Primary Guest Information</h3>
+                                <div class="alert alert-info">
+                                    <small>This information will be used for the reservation. Make sure it matches your ID.</small>
+                                </div>
+                                
+                                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <div>
+                                        <label for="guestFirstName">First Name <span style="color: red;">*</span></label>
+                                        <input type="text" 
+                                               id="guestFirstName" 
+                                               name="guestFirstName" 
+                                               class="form-control" 
+                                               th:value="${user != null ? user.firstName : ''}"
+                                               required>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="guestLastName">Last Name <span style="color: red;">*</span></label>
+                                        <input type="text" 
+                                               id="guestLastName" 
+                                               name="guestLastName" 
+                                               class="form-control" 
+                                               th:value="${user != null ? user.lastName : ''}"
+                                               required>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-2">
+                                    <label for="guestEmail">Email Address <span style="color: red;">*</span></label>
+                                    <input type="email" 
+                                           id="guestEmail" 
+                                           name="guestEmail" 
+                                           class="form-control" 
+                                           th:value="${user != null ? user.email : ''}"
+                                           required>
+                                </div>
+                                
+                                <div class="mt-2">
+                                    <label for="guestPhone">Phone Number <span style="color: red;">*</span></label>
+                                    <input type="tel" 
+                                           id="guestPhone" 
+                                           name="guestPhone" 
+                                           class="form-control" 
+                                           placeholder="+94771234567"
+                                           required>
+                                </div>
+                                
+                                <div class="mt-2">
+                                    <label for="guestIdNumber">ID Number (Passport/NIC)</label>
+                                    <input type="text" 
+                                           id="guestIdNumber" 
+                                           name="guestIdNumber" 
+                                           class="form-control" 
+                                           placeholder="Enter your ID/Passport number">
+                                </div>
+                            </div>
+                            
+                            <!-- Special Requests -->
+                            <div class="form-group">
+                                <h3>Special Requests & Preferences</h3>
+                                <div>
+                                    <label for="specialRequests">Special Requests (Optional)</label>
+                                    <textarea id="specialRequests" 
+                                              name="specialRequests" 
+                                              class="form-control" 
+                                              rows="4" 
+                                              placeholder="Any special requests? (e.g., early check-in, late check-out, room preferences, dietary requirements, etc.)"></textarea>
+                                    <small class="text-muted">We'll do our best to accommodate your requests subject to availability.</small>
+                                </div>
+                                
+                                <div class="mt-2">
+                                    <label for="customerNotes">Additional Notes (Optional)</label>
+                                    <textarea id="customerNotes" 
+                                              name="customerNotes" 
+                                              class="form-control" 
+                                              rows="3" 
+                                              placeholder="Any additional information you'd like us to know about your stay..."></textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Arrival Information -->
+                            <div class="form-group">
+                                <h3>Arrival Information</h3>
+                                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <div>
+                                        <label for="estimatedArrivalTime">Estimated Arrival Time</label>
+                                        <select id="estimatedArrivalTime" name="estimatedArrivalTime" class="form-control">
+                                            <option value="">Select arrival time</option>
+                                            <option value="06:00">6:00 AM - 8:00 AM</option>
+                                            <option value="08:00">8:00 AM - 10:00 AM</option>
+                                            <option value="10:00">10:00 AM - 12:00 PM</option>
+                                            <option value="12:00">12:00 PM - 2:00 PM</option>
+                                            <option value="14:00" selected>2:00 PM - 4:00 PM (Standard Check-in)</option>
+                                            <option value="16:00">4:00 PM - 6:00 PM</option>
+                                            <option value="18:00">6:00 PM - 8:00 PM</option>
+                                            <option value="20:00">8:00 PM - 10:00 PM</option>
+                                            <option value="22:00">After 10:00 PM (Late Check-in)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="transportMode">How will you arrive?</label>
+                                        <select id="transportMode" name="transportMode" class="form-control">
+                                            <option value="">Select transport</option>
+                                            <option value="car">Private Car</option>
+                                            <option value="taxi">Taxi/Ride-share</option>
+                                            <option value="airport_shuttle">Airport Shuttle</option>
+                                            <option value="public_transport">Public Transport</option>
+                                            <option value="walking">Walking</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Terms and Conditions -->
+                            <div class="form-group">
+                                <h3>Terms & Conditions</h3>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div style="max-height: 150px; overflow-y: auto; font-size: 0.9rem; line-height: 1.4;">
+                                            <h5>Booking Terms & Conditions</h5>
+                                            <p><strong>Check-in/Check-out:</strong> Check-in: 2:00 PM | Check-out: 11:00 AM</p>
+                                            <p><strong>Cancellation Policy:</strong> Free cancellation up to 24 hours before check-in. Late cancellations may incur charges.</p>
+                                            <p><strong>Payment:</strong> Full payment is required at the time of booking via secure payment gateway.</p>
+                                            <p><strong>Identification:</strong> Valid government-issued photo ID required at check-in.</p>
+                                            <p><strong>Additional Guests:</strong> Extra charges may apply for additional guests beyond room capacity.</p>
+                                            <p><strong>Smoking Policy:</strong> This is a non-smoking property. Smoking is only permitted in designated outdoor areas.</p>
+                                            <p><strong>Pets:</strong> Pets are not allowed unless specifically stated otherwise.</p>
+                                            <p><strong>Damages:</strong> Guests are responsible for any damages to hotel property during their stay.</p>
+                                            <p><strong>Privacy:</strong> We respect your privacy and handle your personal information according to our privacy policy.</p>
+                                        </div>
+                                        
+                                        <div class="mt-2">
+                                            <label class="flex items-center gap-2">
+                                                <input type="checkbox" id="agreeToTerms" name="agreeToTerms" required>
+                                                <span>I have read and agree to the <a href="/terms" target="_blank">Terms & Conditions</a> and <a href="/privacy" target="_blank">Privacy Policy</a> <span style="color: red;">*</span></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="mt-1">
+                                            <label class="flex items-center gap-2">
+                                                <input type="checkbox" id="confirmDetails" name="confirmDetails" required>
+                                                <span>I confirm that all the information provided is accurate and complete <span style="color: red;">*</span></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="mt-1">
+                                            <label class="flex items-center gap-2">
+                                                <input type="checkbox" id="emailNotifications" name="emailNotifications" checked>
+                                                <span>I would like to receive booking confirmation and updates via email</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <div class="form-group">
+                                <button type="submit" id="submitBookingBtn" class="btn btn-success form-control" disabled>
+                                    💳 Proceed to Payment
+                                </button>
+                                <p class="text-center mt-2" style="font-size: 0.9rem; color: #666;">
+                                    You'll be redirected to secure PayHere payment gateway
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Booking Summary Sidebar -->
+                <div class="booking-summary">
+                    <h3>📋 Booking Summary</h3>
+                    
+                    <div id="summaryContent">
+                        <div id="summaryPlaceholder" class="text-center">
+                            <p>Please complete the booking form to see the summary</p>
+                        </div>
+                        
+                        <div id="summaryDetails" style="display: none;">
+                            <!-- Room Details -->
+                            <div class="summary-section">
+                                <h4>Room Details</h4>
+                                <div class="summary-item">
+                                    <span>Room Type:</span>
+                                    <span id="summaryRoomType">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Room Number:</span>
+                                    <span id="summaryRoomNumber">-</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Stay Details -->
+                            <div class="summary-section">
+                                <h4>Stay Details</h4>
+                                <div class="summary-item">
+                                    <span>Check-in:</span>
+                                    <span id="summaryCheckIn">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Check-out:</span>
+                                    <span id="summaryCheckOut">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Duration:</span>
+                                    <span id="summaryDuration">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Guests:</span>
+                                    <span id="summaryGuests">-</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Price Breakdown -->
+                            <div class="summary-section">
+                                <h4>Price Breakdown</h4>
+                                <div class="summary-item">
+                                    <span>Rate per night:</span>
+                                    <span id="summaryRatePerNight">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Number of nights:</span>
+                                    <span id="summaryNights">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Subtotal:</span>
+                                    <span id="summarySubtotal">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Service charge (10%):</span>
+                                    <span id="summaryServiceCharge">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Taxes (2%):</span>
+                                    <span id="summaryTaxes">-</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Total -->
+                            <div class="total-amount">
+                                <div class="summary-item">
+                                    <span>Total Amount:</span>
+                                    <span id="totalPrice">LKR 0.00</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Payment Info -->
+                            <div class="mt-2">
+                                <div class="alert alert-info" style="padding: 0.75rem; font-size: 0.9rem;">
+                                    <strong>💳 Payment Info:</strong><br>
+                                    Secure payment via PayHere<br>
+                                    Supports Credit/Debit cards<br>
+                                    Instant confirmation
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional JavaScript for booking page -->
+    <th:block th:fragment="additional-js">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                initializeBookingForm();
+                loadSelectedRoomData();
+                setupFormValidation();
+                setupDateListeners();
+                setupCheckboxListeners();
+            });
+            
+            function initializeBookingForm() {
+                // Set minimum dates
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('checkInDate').min = today;
+                document.getElementById('checkOutDate').min = today;
+            }
+            
+            function loadSelectedRoomData() {
+                const selectedRoomData = JSON.parse(sessionStorage.getItem('selectedRoomData') || '{}');
+                
+                if (selectedRoomData.roomId) {
+                    // Display selected room
+                    document.getElementById('roomSelectionPlaceholder').style.display = 'none';
+                    document.getElementById('selectedRoomInfo').style.display = 'block';
+                    
+                    document.getElementById('roomId').value = selectedRoomData.roomId;
+                    document.getElementById('selectedRoomType').textContent = selectedRoomData.roomType;
+                    document.getElementById('selectedRoomNumber').textContent = selectedRoomData.roomNumber;
+                    document.getElementById('roomPricePerNight').textContent = `LKR ${selectedRoomData.pricePerNight.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                    document.getElementById('selectedMaxOccupancy').textContent = `${selectedRoomData.maxOccupancy} guests`;
+                    
+                    // Pre-fill form data
+                    if (selectedRoomData.checkInDate) {
+                        document.getElementById('checkInDate').value = selectedRoomData.checkInDate;
+                    }
+                    if (selectedRoomData.checkOutDate) {
+                        document.getElementById('checkOutDate').value = selectedRoomData.checkOutDate;
+                    }
+                    if (selectedRoomData.numberOfGuests) {
+                        document.getElementById('numberOfGuests').value = selectedRoomData.numberOfGuests;
+                    }
+                    
+                    // Set up guest options based on max occupancy
+                    setupGuestOptions(selectedRoomData.maxOccupancy);
+                    
+                    // Store room data in hidden field
+                    document.getElementById('selectedRoomData').value = JSON.stringify(selectedRoomData);
+                    
+                    // Update summary
+                    updateBookingSummary();
+                } else {
+                    // No room selected, show placeholder
+                    document.getElementById('submitBookingBtn').disabled = true;
+                    document.getElementById('submitBookingBtn').textContent = '🏨 Please Select a Room First';
+                }
+            }
+            
+            function setupGuestOptions(maxOccupancy) {
+                const guestSelect = document.getElementById('numberOfGuests');
+                guestSelect.innerHTML = '<option value="">Select number of guests</option>';
+                
+                for (let i = 1; i <= maxOccupancy; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = `${i} Guest${i !== 1 ? 's' : ''}`;
+                    guestSelect.appendChild(option);
+                }
+            }
+            
+            function setupDateListeners() {
+                const checkInDate = document.getElementById('checkInDate');
+                const checkOutDate = document.getElementById('checkOutDate');
+                
+                checkInDate.addEventListener('change', function() {
+                    checkOutDate.min = this.value;
+                    if (checkOutDate.value && checkOutDate.value <= this.value) {
+                        const nextDay = new Date(this.value);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        checkOutDate.value = nextDay.toISOString().split('T')[0];
+                    }
+                    updateBookingSummary();
+                });
+                
+                checkOutDate.addEventListener('change', function() {
+                    updateBookingSummary();
+                });
+                
+                document.getElementById('numberOfGuests').addEventListener('change', function() {
+                    updateBookingSummary();
+                });
+            }
+            
+            function setupCheckboxListeners() {
+                const agreeToTerms = document.getElementById('agreeToTerms');
+                const confirmDetails = document.getElementById('confirmDetails');
+                const submitBtn = document.getElementById('submitBookingBtn');
+                
+                function updateSubmitButton() {
+                    const roomSelected = document.getElementById('roomId').value;
+                    const termsAccepted = agreeToTerms.checked;
+                    const detailsConfirmed = confirmDetails.checked;
+                    
+                    if (roomSelected && termsAccepted && detailsConfirmed) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = '💳 Proceed to Payment';
+                    } else {
+                        submitBtn.disabled = true;
+                        if (!roomSelected) {
+                            submitBtn.textContent = '🏨 Please Select a Room First';
+                        } else if (!termsAccepted || !detailsConfirmed) {
+                            submitBtn.textContent = '✅ Please Accept Terms & Confirm Details';
+                        }
+                    }
+                }
+                
+                agreeToTerms.addEventListener('change', updateSubmitButton);
+                confirmDetails.addEventListener('change', updateSubmitButton);
+                
+                // Initial check
+                updateSubmitButton();
+            }
+            
+            function setupFormValidation() {
+                const form = document.getElementById('bookingForm');
+                
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    if (validateBookingForm()) {
+                        submitBooking();
+                    }
+                });
+            }
+            
+            function validateBookingForm() {
+                let isValid = true;
+                
+                // Validate required fields
+                const requiredFields = [
+                    'checkInDate', 'checkOutDate', 'numberOfGuests',
+                    'guestFirstName', 'guestLastName', 'guestEmail', 'guestPhone'
+                ];
+                
+                requiredFields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (!field.value.trim()) {
+                        showFieldError(field, 'This field is required');
+                        isValid = false;
+                    } else {
+                        clearFieldError(field);
+                    }
+                });
+                
+                // Validate dates
+                const checkIn = new Date(document.getElementById('checkInDate').value);
+                const checkOut = new Date(document.getElementById('checkOutDate').value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (checkIn < today) {
+                    showFieldError(document.getElementById('checkInDate'), 'Check-in date cannot be in the past');
+                    isValid = false;
+                }
+                
+                if (checkOut <= checkIn) {
+                    showFieldError(document.getElementById('checkOutDate'), 'Check-out date must be after check-in date');
+                    isValid = false;
+                }
+                
+                // Validate email
+                const email = document.getElementById('guestEmail').value;
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (email && !emailPattern.test(email)) {
+                    showFieldError(document.getElementById('guestEmail'), 'Please enter a valid email address');
+                    isValid = false;
+                }
+                
+                // Validate phone
+                const phone = document.getElementById('guestPhone').value;
+                const phonePattern = /^[+]?[0-9]{10,15}$/;
+                if (phone && !phonePattern.test(phone.replace(/\s/g, ''))) {
+                    showFieldError(document.getElementById('guestPhone'), 'Please enter a valid phone number');
+                    isValid = false;
+                }
+                
+                return isValid;
+            }
+            
+            function updateBookingSummary() {
+                const checkInDate = document.getElementById('checkInDate').value;
+                const checkOutDate = document.getElementById('checkOutDate').value;
+                const numberOfGuests = document.getElementById('numberOfGuests').value;
+                const selectedRoomData = JSON.parse(sessionStorage.getItem('selectedRoomData') || '{}');
+                
+                if (checkInDate && checkOutDate && numberOfGuests && selectedRoomData.roomId) {
+                    const nights = calculateNights(checkInDate, checkOutDate);
+                    const pricePerNight = selectedRoomData.pricePerNight;
+                    const subtotal = nights * pricePerNight;
+                    const serviceCharge = subtotal * 0.10; // 10% service charge
+                    const taxes = subtotal * 0.02; // 2% taxes
+                    const total = subtotal + serviceCharge + taxes;
+                    
+                    // Update summary display
+                    document.getElementById('summaryPlaceholder').style.display = 'none';
+                    document.getElementById('summaryDetails').style.display = 'block';
+                    
+                    document.getElementById('summaryRoomType').textContent = selectedRoomData.roomType;
+                    document.getElementById('summaryRoomNumber').textContent = selectedRoomData.roomNumber;
+                    document.getElementById('summaryCheckIn').textContent = formatDate(checkInDate);
+                    document.getElementById('summaryCheckOut').textContent = formatDate(checkOutDate);
+                    document.getElementById('summaryDuration').textContent = `${nights} night${nights !== 1 ? 's' : ''}`;
+                    document.getElementById('summaryGuests').textContent = `${numberOfGuests} guest${numberOfGuests !== '1' ? 's' : ''}`;
+                    document.getElementById('summaryRatePerNight').textContent = formatCurrency(pricePerNight);
+                    document.getElementById('summaryNights').textContent = nights;
+                    document.getElementById('summarySubtotal').textContent = formatCurrency(subtotal);
+                    document.getElementById('summaryServiceCharge').textContent = formatCurrency(serviceCharge);
+                    document.getElementById('summaryTaxes').textContent = formatCurrency(taxes);
+                    document.getElementById('totalPrice').textContent = formatCurrency(total);
+                    
+                    // Update duration in main form
+                    document.getElementById('stayDuration').textContent = `${nights} night${nights !== 1 ? 's' : ''}`;
+                } else {
+                    document.getElementById('summaryPlaceholder').style.display = 'block';
+                    document.getElementById('summaryDetails').style.display = 'none';
+                    document.getElementById('stayDuration').textContent = 'Please select dates';
+                }
+            }
+            
+            function calculateNights(checkIn, checkOut) {
+                const start = new Date(checkIn);
+                const end = new Date(checkOut);
+                const diffTime = Math.abs(end - start);
+                return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            }
+            
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+            
+            function formatCurrency(amount) {
+                return `LKR ${amount.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            }
+            
+            function submitBooking() {
+                const formData = new FormData(document.getElementById('bookingForm'));
+                const bookingData = {};
+                
+                for (let [key, value] of formData.entries()) {
+                    bookingData[key] = value;
+                }
+                
+                showLoading('Creating your booking...');
+                
+                fetch('/api/bookings/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]').value
+                    },
+                    body: JSON.stringify(bookingData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success && data.bookingId) {
+                        // Store booking data for payment
+                        sessionStorage.setItem('pendingBooking', JSON.stringify(data));
+                        // Redirect to payment
+                        window.location.href = '/payment?bookingId=' + data.bookingId;
+                    } else {
+                        showAlert(data.error || 'Error creating booking. Please try again.', 'error');
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    showAlert('Error creating booking. Please check your connection and try again.', 'error');
+                    console.error('Booking error:', error);
+                });
+            }
+            
+            function changeRoom() {
+                if (confirm('Are you sure you want to change the room? You will lose the current booking details.')) {
+                    sessionStorage.removeItem('selectedRoomData');
+                    window.location.href = '/rooms';
+                }
+            }
+            
+            // Auto-save form data
+            function autoSaveForm() {
+                const formData = new FormData(document.getElementById('bookingForm'));
+                const autoSaveData = {};
+                
+                for (let [key, value] of formData.entries()) {
+                    if (value) {
+                        autoSaveData[key] = value;
+                    }
+                }
+                
+                sessionStorage.setItem('bookingFormAutoSave', JSON.stringify(autoSaveData));
+            }
+            
+            // Load auto-saved form data
+            function loadAutoSavedData() {
+                const autoSaveData = JSON.parse(sessionStorage.getItem('bookingFormAutoSave') || '{}');
+                
+                Object.keys(autoSaveData).forEach(key => {
+                    const field = document.getElementById(key);
+                    if (field && !field.value) {
+                        field.value = autoSaveData[key];
+                    }
+                });
+            }
+            
+            // Set up auto-save
+            setTimeout(() => {
+                loadAutoSavedData();
+                
+                // Save form data every 30 seconds
+                setInterval(autoSaveForm, 30000);
+                
+                // Save when user leaves page
+                window.addEventListener('beforeunload', autoSaveForm);
+            }, 1000);
+        </script>
+    </th:block>
+    
+    <!-- Additional CSS for booking page -->
+    <th:block th:fragment="additional-css">
+        <style>
+            .booking-container {
+                display: grid;
+                grid-template-columns: 1fr 350px;
+                gap: 2rem;
+                margin: 2rem 0;
+            }
+            
+            .booking-summary {
+                background: white;
+                padding: 1.5rem;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+                height: fit-content;
+                position: sticky;
+                top: 2rem;
+            }
+            
+            .summary-section {
+                margin: 1.5rem 0;
+                padding-bottom: 1rem;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .summary-section:last-child {
+                border-bottom: none;
+            }
+            
+            .summary-section h4 {
+                margin-bottom: 0.5rem;
+                color: #333;
+                font-size: 1rem;
+            }
+            
+            .summary-item {
+                display: flex;
+                justify-content: space-between;
+                margin: 0.5rem 0;
+                padding: 0.25rem 0;
+            }
+            
+            .total-amount {
+                border-top: 2px solid #3498db;
+                padding-top: 1rem;
+                margin-top: 1rem;
+            }
+            
+            .total-amount .summary-item {
+                font-size: 1.2rem;
+                font-weight: bold;
+                color: #2c3e50;
+            }
+            
+            .field-error {
+                color: #e74c3c;
+                font-size: 0.9rem;
+                margin-top: 0.25rem;
+            }
+            
+            .form-control.error {
+                border-color: #e74c3c;
+                box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+            }
+            
+            .grid {
+                display: grid;
+            }
+            
+            @media (max-width: 768px) {
+                .booking-container {
+                    grid-template-columns: 1fr;
+                    gap: 1rem;
+                }
+                
+                .booking-summary {
+                    position: static;
+                    order: -1;
+                }
+                
+                .grid {
+                    grid-template-columns: 1fr !important;
+                }
+            }
+            
+            .alert-info {
+                background-color: #d1ecf1;
+                border: 1px solid #bee5eb;
+                color: #0c5460;
+                border-radius: 5px;
+            }
+            
+            .flex {
+                display: flex;
+            }
+            
+            .items-center {
+                align-items: center;
+            }
+            
+            .gap-2 {
+                gap: 0.5rem;
+            }
+        </style>
+    </th:block>
+</body>
+</html>

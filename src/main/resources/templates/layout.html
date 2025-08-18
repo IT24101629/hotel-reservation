@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle != null ? pageTitle + ' - Hotel Reservation System' : 'Hotel Reservation System'}">Hotel Reservation System</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <!-- Additional CSS (can be overridden in child templates) -->
+    <th:block th:fragment="additional-css">
+        <!-- Additional CSS goes here -->
+    </th:block>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <!-- Logo -->
+                <a href="/" class="logo">🏨 Hotel Reservation</a>
+                
+                <!-- Navigation Links -->
+                <ul class="nav-links">
+                    <!-- Public Links -->
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/rooms">Rooms</a></li>
+                    
+                    <!-- Authenticated User Links -->
+                    <th:block sec:authorize="isAuthenticated()">
+                        <li><a href="/dashboard">Dashboard</a></li>
+                        <li><a href="/my-bookings">My Bookings</a></li>
+                        <li><a href="/profile">Profile</a></li>
+                    </th:block>
+                    
+                    <!-- Admin Links -->
+                    <th:block sec:authorize="hasRole('ADMIN')">
+                        <li><a href="/admin/dashboard">Admin</a></li>
+                        <li><a href="/admin/rooms">Manage Rooms</a></li>
+                        <li><a href="/admin/bookings">All Bookings</a></li>
+                    </th:block>
+                    
+                    <!-- Authentication Links -->
+                    <th:block sec:authorize="isAnonymous()">
+                        <li><a href="/login" class="btn btn-primary">Login</a></li>
+                        <li><a href="/register" class="btn btn-success">Register</a></li>
+                    </th:block>
+                    
+                    <th:block sec:authorize="isAuthenticated()">
+                        <li>
+                            <span>Welcome, <span sec:authentication="principal.firstName">User</span>!</span>
+                        </li>
+                        <li>
+                            <a href="/logout" class="btn btn-secondary">Logout</a>
+                        </li>
+                    </th:block>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main>
+        <!-- Alert Messages -->
+        <div class="container">
+            <!-- Success Messages -->
+            <div th:if="${successMessage}" class="alert alert-success">
+                <span th:text="${successMessage}">Success message</span>
+            </div>
+            
+            <!-- Error Messages -->
+            <div th:if="${errorMessage}" class="alert alert-error">
+                <span th:text="${errorMessage}">Error message</span>
+            </div>
+            
+            <!-- Warning Messages -->
+            <div th:if="${warningMessage}" class="alert alert-warning">
+                <span th:text="${warningMessage}">Warning message</span>
+            </div>
+            
+            <!-- Info Messages -->
+            <div th:if="${infoMessage}" class="alert alert-info">
+                <span th:text="${infoMessage}">Info message</span>
+            </div>
+        </div>
+        
+        <!-- Page Content -->
+        <div th:replace="~{::content}">
+            <!-- This will be replaced by the content from child templates -->
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Hotel Reservation System. All rights reserved.</p>
+            <p>Made with ❤️ for hospitality excellence</p>
+        </div>
+    </footer>
+    
+    <!-- JavaScript -->
+    <script src="/js/main.js"></script>
+    
+    <!-- Additional JavaScript (can be overridden in child templates) -->
+    <th:block th:fragment="additional-js">
+        <!-- Additional JavaScript goes here -->
+    </th:block>
+</body>
+</html>

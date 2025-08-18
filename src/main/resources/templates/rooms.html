@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{layout :: layout}">
+<head>
+    <title>Available Rooms - Hotel Reservation System</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="container">
+            <!-- Page Header -->
+            <section class="mt-2 mb-3 text-center">
+                <h1>🏨 Available Rooms</h1>
+                <p>Discover our range of comfortable and luxurious accommodations</p>
+            </section>
+            
+            <!-- Search and Filter Section -->
+            <section class="search-container mb-3">
+                <h2 class="text-center mb-2">🔍 Search & Filter Rooms</h2>
+                <form id="roomSearchForm" class="search-form">
+                    <div class="form-group">
+                        <label for="checkInDate">Check-in Date</label>
+                        <input type="date" 
+                               id="checkInDate" 
+                               name="checkInDate" 
+                               class="form-control" 
+                               th:value="${searchParams?.checkInDate}" 
+                               required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="checkOutDate">Check-out Date</label>
+                        <input type="date" 
+                               id="checkOutDate" 
+                               name="checkOutDate" 
+                               class="form-control" 
+                               th:value="${searchParams?.checkOutDate}" 
+                               required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="guests">Number of Guests</label>
+                        <select id="guests" name="guests" class="form-control" required>
+                            <option value="">Select guests</option>
+                            <option value="1" th:selected="${searchParams?.guests == '1'}">1 Guest</option>
+                            <option value="2" th:selected="${searchParams?.guests == '2'}">2 Guests</option>
+                            <option value="3" th:selected="${searchParams?.guests == '3'}">3 Guests</option>
+                            <option value="4" th:selected="${searchParams?.guests == '4'}">4 Guests</option>
+                            <option value="5" th:selected="${searchParams?.guests == '5'}">5 Guests</option>
+                            <option value="6" th:selected="${searchParams?.guests == '6'}">6 Guests</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="roomType">Room Type</label>
+                        <select id="roomType" name="roomType" class="form-control">
+                            <option value="">Any Type</option>
+                            <option value="Standard Single" th:selected="${searchParams?.roomType == 'Standard Single'}">Standard Single</option>
+                            <option value="Standard Double" th:selected="${searchParams?.roomType == 'Standard Double'}">Standard Double</option>
+                            <option value="Deluxe Room" th:selected="${searchParams?.roomType == 'Deluxe Room'}">Deluxe Room</option>
+                            <option value="Family Suite" th:selected="${searchParams?.roomType == 'Family Suite'}">Family Suite</option>
+                            <option value="Presidential Suite" th:selected="${searchParams?.roomType == 'Presidential Suite'}">Presidential Suite</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="priceRange">Price Range (LKR)</label>
+                        <select id="priceRange" name="priceRange" class="form-control">
+                            <option value="">Any Price</option>
+                            <option value="0-10000" th:selected="${searchParams?.priceRange == '0-10000'}">Under 10,000</option>
+                            <option value="10000-20000" th:selected="${searchParams?.priceRange == '10000-20000'}">10,000 - 20,000</option>
+                            <option value="20000-30000" th:selected="${searchParams?.priceRange == '20000-30000'}">20,000 - 30,000</option>
+                            <option value="30000-50000" th:selected="${searchParams?.priceRange == '30000-50000'}">30,000 - 50,000</option>
+                            <option value="50000+" th:selected="${searchParams?.priceRange == '50000+'}">Above 50,000</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" id="searchRoomsBtn" class="btn btn-primary form-control">🔍 Search Available Rooms</button>
+                    </div>
+                </form>
+            </section>
+            
+            <!-- Search Results Count -->
+            <section id="searchResultsInfo" class="mb-2" style="display: none;">
+                <div class="card">
+                    <div class="card-body">
+                        <p id="resultsCount" class="text-center mb-0"></p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Room Listing -->
+            <section id="roomListing">
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="text-center" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Searching available rooms...</p>
+                </div>
+                
+                <!-- Search Results Container -->
+                <div id="searchResults" class="rooms-grid">
+                    <!-- Default rooms display (when no search is performed) -->
+                    <div class="room-card">
+                        <img src="/images/rooms/standard-single.jpg" alt="Standard Single Room" class="room-image" onerror="this.src='/images/room-default.jpg'">
+                        <div class="room-info">
+                            <h3 class="room-title">Standard Single Room</h3>
+                            <p class="room-description">Perfect for solo travelers seeking comfort and convenience with modern amenities.</p>
+                            <div class="room-details">
+                                <p><strong>Max Occupancy:</strong> 1 Guest</p>
+                                <p><strong>Room Size:</strong> 25 sqm</p>
+                                <p><strong>Bed Type:</strong> Single Bed</p>
+                            </div>
+                            <div class="room-amenities">
+                                <span class="amenity-tag">📶 WiFi</span>
+                                <span class="amenity-tag">❄️ AC</span>
+                                <span class="amenity-tag">📺 TV</span>
+                                <span class="amenity-tag">🚿 Private Bathroom</span>
+                            </div>
+                            <div class="room-price">LKR 8,500.00 / night</div>
+                            <div class="mt-2">
+                                <button class="btn btn-primary" onclick="openBookingModal('Standard Single', 8500, 1)" sec:authorize="isAuthenticated()">
+                                    📅 Book Now
+                                </button>
+                                <a href="/login" class="btn btn-primary" sec:authorize="isAnonymous()">
+                                    🔑 Login to Book
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="room-card">
+                        <img src="/images/rooms/standard-double.jpg" alt="Standard Double Room" class="room-image" onerror="this.src='/images/room-default.jpg'">
+                        <div class="room-info">
+                            <h3 class="room-title">Standard Double Room</h3>
+                            <p class="room-description">Spacious accommodation ideal for couples and business travelers with enhanced amenities.</p>
+                            <div class="room-details">
+                                <p><strong>Max Occupancy:</strong> 2 Guests</p>
+                                <p><strong>Room Size:</strong> 35 sqm</p>
+                                <p><strong>Bed Type:</strong> Queen Bed</p>
+                            </div>
+                            <div class="room-amenities">
+                                <span class="amenity-tag">📶 WiFi</span>
+                                <span class="amenity-tag">❄️ AC</span>
+                                <span class="amenity-tag">📺 TV</span>
+                                <span class="amenity-tag">🧊 Mini Fridge</span>
+                                <span class="amenity-tag">🚿 Private Bathroom</span>
+                            </div>
+                            <div class="room-price">LKR 12,000.00 / night</div>
+                            <div class="mt-2">
+                                <button class="btn btn-primary" onclick="openBookingModal('Standard Double', 12000, 2)" sec:authorize="isAuthenticated()">
+                                    📅 Book Now
+                                </button>
+                                <a href="/login" class="btn btn-primary" sec:authorize="isAnonymous()">
+                                    🔑 Login to Book
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="room-card">
+                        <img src="/images/rooms/deluxe.jpg" alt="Deluxe Room" class="room-image" onerror="this.src='/images/room-default.jpg'">
+                        <div class="room-info">
+                            <h3 class="room-title">Deluxe Room</h3>
+                            <p class="room-description">Luxury accommodation with premium amenities and stunning city or garden views.</p>
+                            <div class="room-details">
+                                <p><strong>Max Occupancy:</strong> 3 Guests</p>
+                                <p><strong>Room Size:</strong> 45 sqm</p>
+                                <p><strong>Bed Type:</strong> King Bed + Sofa</p>
+                            </div>
+                            <div class="room-amenities">
+                                <span class="amenity-tag">📶 WiFi</span>
+                                <span class="amenity-tag">❄️ AC</span>
+                                <span class="amenity-tag">📺 TV</span>
+                                <span class="amenity-tag">🧊 Mini Fridge</span>
+                                <span class="amenity-tag">🌅 Balcony</span>
+                                <span class="amenity-tag">🛎️ Room Service</span>
+                            </div>
+                            <div class="room-price">LKR 18,000.00 / night</div>
+                            <div class="mt-2">
+                                <button class="btn btn-primary" onclick="openBookingModal('Deluxe Room', 18000, 3)" sec:authorize="isAuthenticated()">
+                                    📅 Book Now
+                                </button>
+                                <a href="/login" class="btn btn-primary" sec:authorize="isAnonymous()">
+                                    🔑 Login to Book
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="room-card">
+                        <img src="/images/rooms/family-suite.jpg" alt="Family Suite" class="room-image" onerror="this.src='/images/room-default.jpg'">
+                        <div class="room-info">
+                            <h3 class="room-title">Family Suite</h3>
+                            <p class="room-description">Spacious suite perfect for families with separate living area and enhanced amenities.</p>
+                            <div class="room-details">
+                                <p><strong>Max Occupancy:</strong> 4 Guests</p>
+                                <p><strong>Room Size:</strong> 65 sqm</p>
+                                <p><strong>Bed Type:</strong> King Bed + Sofa Bed</p>
+                            </div>
+                            <div class="room-amenities">
+                                <span class="amenity-tag">📶 WiFi</span>
+                                <span class="amenity-tag">❄️ AC</span>
+                                <span class="amenity-tag">📺 TV</span>
+                                <span class="amenity-tag">🧊 Mini Fridge</span>
+                                <span class="amenity-tag">🌅 Balcony</span>
+                                <span class="amenity-tag">🛎️ Room Service</span>
+                                <span class="amenity-tag">🛋️ Living Area</span>
+                            </div>
+                            <div class="room-price">LKR 25,000.00 / night</div>
+                            <div class="mt-2">
+                                <button class="btn btn-primary" onclick="openBookingModal('Family Suite', 25000, 4)" sec:authorize="isAuthenticated()">
+                                    📅 Book Now
+                                </button>
+                                <a href="/login" class="btn btn-primary" sec:authorize="isAnonymous()">
+                                    🔑 Login to Book
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="room-card">
+                        <img src="/images/rooms/presidential.jpg" alt="Presidential Suite" class="room-image" onerror="this.src='/images/room-default.jpg'">
+                        <div class="room-info">
+                            <h3 class="room-title">Presidential Suite</h3>
+                            <p class="room-description">Ultimate luxury accommodation with panoramic views, premium services, and exclusive amenities.</p>
+                            <div class="room-details">
+                                <p><strong>Max Occupancy:</strong> 6 Guests</p>
+                                <p><strong>Room Size:</strong> 120 sqm</p>
+                                <p><strong>Bed Type:</strong> King Bed + Sofa Beds</p>
+                            </div>
+                            <div class="room-amenities">
+                                <span class="amenity-tag">📶 WiFi</span>
+                                <span class="amenity-tag">❄️ AC</span>
+                                <span class="amenity-tag">📺 TV</span>
+                                <span class="amenity-tag">🧊 Mini Fridge</span>
+                                <span class="amenity-tag">🌅 Balcony</span>
+                                <span class="amenity-tag">🛎️ Room Service</span>
+                                <span class="amenity-tag">🛁 Jacuzzi</span>
+                                <span class="amenity-tag">👨‍💼 Butler Service</span>
+                            </div>
+                            <div class="room-price">LKR 45,000.00 / night</div>
+                            <div class="mt-2">
+                                <button class="btn btn-primary" onclick="openBookingModal('Presidential Suite', 45000, 6)" sec:authorize="isAuthenticated()">
+                                    📅 Book Now
+                                </button>
+                                <a href="/login" class="btn btn-primary" sec:authorize="isAnonymous()">
+                                    🔑 Login to Book
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- No Results Message -->
+                <div id="noResults" class="text-center" style="display: none;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h3>😔 No Available Rooms</h3>
+                            <p>Sorry, no rooms match your search criteria. Please try adjusting your dates or preferences.</p>
+                            <button class="btn btn-primary" onclick="clearSearch()">🔄 Clear Search</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- Quick Booking Modal -->
+        <div id="bookingModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>📅 Quick Booking</h2>
+                    <span class="close" onclick="closeBookingModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="quickBookingForm">
+                        <input type="hidden" id="selectedRoomType" name="roomType">
+                        <input type="hidden" id="selectedRoomPrice" name="roomPrice">
+                        <input type="hidden" id="selectedMaxGuests" name="maxGuests">
+                        
+                        <div class="form-group">
+                            <label>Selected Room:</label>
+                            <p id="modalRoomType" class="room-title"></p>
+                            <p id="modalRoomPrice" class="room-price"></p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modalCheckIn">Check-in Date</label>
+                            <input type="date" id="modalCheckIn" name="checkInDate" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modalCheckOut">Check-out Date</label>
+                            <input type="date" id="modalCheckOut" name="checkOutDate" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modalGuests">Number of Guests</label>
+                            <select id="modalGuests" name="numberOfGuests" class="form-control" required>
+                                <option value="">Select guests</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="specialRequests">Special Requests (Optional)</label>
+                            <textarea id="specialRequests" name="specialRequests" class="form-control" rows="3" placeholder="Any special requests or requirements..."></textarea>
+                        </div>
+                        
+                        <div id="bookingSummary" class="card mt-2" style="display: none;">
+                            <div class="card-body">
+                                <h4>Booking Summary</h4>
+                                <div class="summary-item">
+                                    <span>Duration:</span>
+                                    <span id="summaryDuration">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Price per night:</span>
+                                    <span id="summaryPricePerNight">-</span>
+                                </div>
+                                <div class="summary-item total-amount">
+                                    <span>Total Amount:</span>
+                                    <span id="summaryTotal">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-3">
+                            <button type="submit" class="btn btn-success form-control">
+                                💳 Proceed to Booking & Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional JavaScript for rooms page -->
+    <th:block th:fragment="additional-js">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                initializeRoomSearch();
+                initializeDatePickers();
+                
+                // Auto-search if search parameters are present in URL
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('checkInDate') && urlParams.has('checkOutDate') && urlParams.has('guests')) {
+                    performSearch();
+                }
+            });
+            
+            function initializeRoomSearch() {
+                const searchForm = document.getElementById('roomSearchForm');
+                searchForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    performSearch();
+                });
+            }
+            
+            function initializeDatePickers() {
+                const today = new Date().toISOString().split('T')[0];
+                const checkInDate = document.getElementById('checkInDate');
+                const checkOutDate = document.getElementById('checkOutDate');
+                
+                checkInDate.min = today;
+                checkOutDate.min = today;
+                
+                // Set default dates if not already set
+                if (!checkInDate.value) {
+                    checkInDate.value = today;
+                }
+                if (!checkOutDate.value) {
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    checkOutDate.value = tomorrow.toISOString().split('T')[0];
+                }
+                
+                checkInDate.addEventListener('change', function() {
+                    checkOutDate.min = this.value;
+                    if (checkOutDate.value && checkOutDate.value <= this.value) {
+                        const nextDay = new Date(this.value);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        checkOutDate.value = nextDay.toISOString().split('T')[0];
+                    }
+                });
+            }
+            
+            function performSearch() {
+                const formData = new FormData(document.getElementById('roomSearchForm'));
+                const searchParams = new URLSearchParams();
+                
+                for (let [key, value] of formData.entries()) {
+                    if (value) {
+                        searchParams.append(key, value);
+                    }
+                }
+                
+                showLoading();
+                document.getElementById('searchResultsInfo').style.display = 'none';
+                document.getElementById('noResults').style.display = 'none';
+                
+                fetch(`/api/rooms/search?${searchParams.toString()}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        hideLoading();
+                        displaySearchResults(data);
+                        updateURL(searchParams);
+                    })
+                    .catch(error => {
+                        hideLoading();
+                        showAlert('Error searching rooms. Please try again.', 'error');
+                        console.error('Search error:', error);
+                    });
+            }
+            
+            function displaySearchResults(rooms) {
+                const resultsContainer = document.getElementById('searchResults');
+                const resultsInfo = document.getElementById('searchResultsInfo');
+                const resultsCount = document.getElementById('resultsCount');
+                const noResults = document.getElementById('noResults');
+                
+                if (rooms.length === 0) {
+                    resultsContainer.style.display = 'none';
+                    resultsInfo.style.display = 'none';
+                    noResults.style.display = 'block';
+                    return;
+                }
+                
+                // Show results count
+                resultsCount.textContent = `Found ${rooms.length} available room${rooms.length !== 1 ? 's' : ''} matching your criteria`;
+                resultsInfo.style.display = 'block';
+                noResults.style.display = 'none';
+                
+                // Display rooms
+                resultsContainer.innerHTML = rooms.map(room => `
+                    <div class="room-card fade-in">
+                        <img src="${room.imageUrl || '/images/room-default.jpg'}" alt="${room.roomType}" class="room-image" onerror="this.src='/images/room-default.jpg'">
+                        <div class="room-info">
+                            <h3 class="room-title">${room.roomType}</h3>
+                            <p class="room-description">${room.description || ''}</p>
+                            <div class="room-details">
+                                <p><strong>Room Number:</strong> ${room.roomNumber}</p>
+                                <p><strong>Floor:</strong> ${room.floorNumber}</p>
+                                <p><strong>Max Occupancy:</strong> ${room.maxOccupancy} guests</p>
+                            </div>
+                            <div class="room-amenities">
+                                ${room.amenities ? JSON.parse(room.amenities).map(amenity => 
+                                    `<span class="amenity-tag">${amenity}</span>`
+                                ).join('') : ''}
+                            </div>
+                            <div class="room-price">LKR ${room.pricePerNight.toLocaleString('en-US', {minimumFractionDigits: 2})} / night</div>
+                            <div class="mt-2">
+                                <button class="btn btn-primary" onclick="selectRoomForBooking(${room.roomId}, '${room.roomNumber}', ${room.pricePerNight}, '${room.roomType}', ${room.maxOccupancy})">
+                                    📅 Book This Room
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                resultsContainer.style.display = 'grid';
+            }
+            
+            function selectRoomForBooking(roomId, roomNumber, pricePerNight, roomType, maxOccupancy) {
+                // Store search criteria and selected room
+                const searchData = {
+                    roomId,
+                    roomNumber,
+                    pricePerNight,
+                    roomType,
+                    maxOccupancy,
+                    checkInDate: document.getElementById('checkInDate').value,
+                    checkOutDate: document.getElementById('checkOutDate').value,
+                    numberOfGuests: document.getElementById('guests').value
+                };
+                
+                sessionStorage.setItem('selectedRoomData', JSON.stringify(searchData));
+                
+                // Redirect to booking page
+                window.location.href = '/booking';
+            }
+            
+            function openBookingModal(roomType, price, maxGuests) {
+                document.getElementById('selectedRoomType').value = roomType;
+                document.getElementById('selectedRoomPrice').value = price;
+                document.getElementById('selectedMaxGuests').value = maxGuests;
+                
+                document.getElementById('modalRoomType').textContent = roomType;
+                document.getElementById('modalRoomPrice').textContent = `LKR ${price.toLocaleString('en-US', {minimumFractionDigits: 2})} / night`;
+                
+                // Set up guest options
+                const guestSelect = document.getElementById('modalGuests');
+                guestSelect.innerHTML = '<option value="">Select guests</option>';
+                for (let i = 1; i <= maxGuests; i++) {
+                    guestSelect.innerHTML += `<option value="${i}">${i} Guest${i !== 1 ? 's' : ''}</option>`;
+                }
+                
+                // Set default dates
+                const today = new Date().toISOString().split('T')[0];
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                
+                document.getElementById('modalCheckIn').value = today;
+                document.getElementById('modalCheckIn').min = today;
+                document.getElementById('modalCheckOut').value = tomorrow.toISOString().split('T')[0];
+                document.getElementById('modalCheckOut').min = today;
+                
+                // Set up date change listeners for summary calculation
+                setupModalDateListeners();
+                
+                document.getElementById('bookingModal').style.display = 'block';
+            }
+            
+            function closeBookingModal() {
+                document.getElementById('bookingModal').style.display = 'none';
+            }
+            
+            function setupModalDateListeners() {
+                const checkIn = document.getElementById('modalCheckIn');
+                const checkOut = document.getElementById('modalCheckOut');
+                const guests = document.getElementById('modalGuests');
+                
+                function updateSummary() {
+                    if (checkIn.value && checkOut.value && guests.value) {
+                        const nights = calculateNights(checkIn.value, checkOut.value);
+                        const pricePerNight = parseFloat(document.getElementById('selectedRoomPrice').value);
+                        const total = nights * pricePerNight;
+                        
+                        document.getElementById('summaryDuration').textContent = `${nights} night${nights !== 1 ? 's' : ''}`;
+                        document.getElementById('summaryPricePerNight').textContent = `LKR ${pricePerNight.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                        document.getElementById('summaryTotal').textContent = `LKR ${total.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                        
+                        document.getElementById('bookingSummary').style.display = 'block';
+                    }
+                }
+                
+                checkIn.addEventListener('change', function() {
+                    checkOut.min = this.value;
+                    if (checkOut.value && checkOut.value <= this.value) {
+                        const nextDay = new Date(this.value);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        checkOut.value = nextDay.toISOString().split('T')[0];
+                    }
+                    updateSummary();
+                });
+                
+                checkOut.addEventListener('change', updateSummary);
+                guests.addEventListener('change', updateSummary);
+            }
+            
+            function calculateNights(checkIn, checkOut) {
+                const start = new Date(checkIn);
+                const end = new Date(checkOut);
+                const diffTime = Math.abs(end - start);
+                return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            }
+            
+            function updateURL(searchParams) {
+                const newURL = window.location.pathname + '?' + searchParams.toString();
+                window.history.pushState({}, '', newURL);
+            }
+            
+            function clearSearch() {
+                document.getElementById('roomSearchForm').reset();
+                document.getElementById('searchResults').innerHTML = '';
+                document.getElementById('searchResultsInfo').style.display = 'none';
+                document.getElementById('noResults').style.display = 'none';
+                
+                // Reset to default room display
+                location.reload();
+            }
+            
+            function showLoading() {
+                document.getElementById('loadingSpinner').style.display = 'block';
+                document.getElementById('searchResults').style.display = 'none';
+            }
+            
+            function hideLoading() {
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+            
+            // Handle quick booking form submission
+            document.getElementById('quickBookingForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const bookingData = {};
+                for (let [key, value] of formData.entries()) {
+                    bookingData[key] = value;
+                }
+                
+                // Store booking data and redirect
+                sessionStorage.setItem('quickBookingData', JSON.stringify(bookingData));
+                window.location.href = '/booking/confirm';
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById('bookingModal');
+                if (event.target === modal) {
+                    closeBookingModal();
+                }
+            });
+        </script>
+    </th:block>
+    
+    <!-- Additional CSS for rooms page -->
+    <th:block th:fragment="additional-css">
+        <style>
+            .modal {
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .modal-content {
+                background-color: white;
+                padding: 0;
+                border-radius: 10px;
+                width: 90%;
+                max-width: 600px;
+                max-height: 90vh;
+                overflow-y: auto;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            }
+            
+            .modal-header {
+                padding: 1.5rem;
+                border-bottom: 1px solid #eee;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .modal-body {
+                padding: 1.5rem;
+            }
+            
+            .close {
+                color: #aaa;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+                background: none;
+                border: none;
+            }
+            
+            .close:hover {
+                color: #000;
+            }
+            
+            .room-card {
+                transition: all 0.3s ease;
+            }
+            
+            .room-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            }
+            
+            .room-details p {
+                margin: 0.25rem 0;
+                color: #666;
+                font-size: 0.9rem;
+            }
+            
+            .fade-in {
+                animation: fadeInUp 0.6s ease;
+            }
+            
+            @media (max-width: 768px) {
+                .modal-content {
+                    width: 95%;
+                    margin: 1rem;
+                }
+                
+                .rooms-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </th:block>
+</body>
+</html>

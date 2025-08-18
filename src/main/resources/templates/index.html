@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout}">
+<head>
+    <title th:text="'Welcome - Hotel Reservation System'">Welcome - Hotel Reservation System</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Welcome to Hotel Reservation System</h1>
+                <p>Experience luxury and comfort with our exceptional accommodation services</p>
+                <a href="/rooms" class="btn btn-primary">Explore Rooms</a>
+                <a href="/register" class="btn btn-success">Book Now</a>
+            </div>
+        </section>
+        
+        <div class="container">
+            <!-- Quick Search Section -->
+            <section class="search-container fade-in">
+                <h2 class="text-center mb-3">Find Your Perfect Room</h2>
+                <form id="quickSearchForm" class="search-form" th:action="@{/rooms}" method="get">
+                    <div class="form-group">
+                        <label for="checkInDate">Check-in Date</label>
+                        <input type="date" id="checkInDate" name="checkInDate" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="checkOutDate">Check-out Date</label>
+                        <input type="date" id="checkOutDate" name="checkOutDate" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="guests">Number of Guests</label>
+                        <select id="guests" name="guests" class="form-control" required>
+                            <option value="">Select guests</option>
+                            <option value="1">1 Guest</option>
+                            <option value="2">2 Guests</option>
+                            <option value="3">3 Guests</option>
+                            <option value="4">4 Guests</option>
+                            <option value="5">5 Guests</option>
+                            <option value="6">6 Guests</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>&nbsp;</label> <!-- Spacer for alignment -->
+                        <button type="submit" class="btn btn-primary form-control">Search Rooms</button>
+                    </div>
+                </form>
+            </section>
+            
+            <!-- Features Section -->
+            <section class="mt-3">
+                <h2 class="text-center mb-3">Why Choose Us?</h2>
+                <div class="rooms-grid">
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3>🏨 Luxury Accommodation</h3>
+                            <p>Experience premium comfort with our well-appointed rooms featuring modern amenities and elegant décor.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3>💳 Secure Payments</h3>
+                            <p>Book with confidence using our secure PayHere payment gateway supporting multiple payment methods.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3>📱 Digital Confirmation</h3>
+                            <p>Receive instant booking confirmations with QR codes sent directly to your email for easy check-in.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3>🌟 Exceptional Service</h3>
+                            <p>Our dedicated staff ensures your stay is memorable with personalized service and attention to detail.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3>🍽️ Fine Dining</h3>
+                            <p>Enjoy exquisite culinary experiences at our restaurant featuring local and international cuisine.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3>📍 Prime Location</h3>
+                            <p>Conveniently located with easy access to major attractions, business districts, and transportation.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Room Types Preview -->
+            <section class="mt-3">
+                <h2 class="text-center mb-3">Our Room Types</h2>
+                <div class="rooms-grid">
+                    <!-- Standard Single -->
+                    <div class="room-card fade-in">
+                        <img src="/images/rooms/standard-single.jpg" alt="Standard Single Room" class="room-image" onerror="this.src='/images/room-default.jpg'">
+                        <div class="room-info">
+                            <h3 class="room-title">Standard Single</h3>
+                            <p>Perfect for solo travelers seeking comfort and convenience.</p>
+                            <div class="room-amenities">
+                                <span class="amenity-tag">WiFi</span>
+                                <span class="amenity-tag">AC</span>
+                                <span class="amenity-tag">TV</span>
+                                <span class="amenity-tag">Private Bathroom</span>
+                            </div>
+                            <div class="room-price">LKR 8,500.00 / night</div>
+                            <a href="/rooms?type=Standard Single" class="btn btn-primary">View Details</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Standard Double -->
+                    <div class="room-card fade-in">
+                        <img src="/images/rooms/standard-double.jpg" alt="Standard Double Room" class="room-image" onerror="this.src='/images/room-default.jpg'">
+                        <div class="room-info">
+                            <h3 class="room-title">Standard Double</h3>
+                            <p>Spacious accommodation ideal for couples and business travelers.</p>
+                            <div class="room-amenities">
+                                <span class="amenity-tag">WiFi</span>
+                                <span class="amenity-tag">AC</span>
+                                <span class="amenity-tag">TV</span>
+                                <span class="amenity-tag">Mini Fridge</span>
+                            </div>
+                            <div class="room-price">LKR 12,000.00 / night</div>
+                            <a href="/rooms?type=Standard Double" class="btn btn-primary">View Details</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Deluxe Room -->
+                    <div class="room-card fade-in">
+                        <img src="/images/rooms/deluxe.jpg" alt="Deluxe Room" class="room-image" onerror="this.src='/images/room-default.jpg'">
+                        <div class="room-info">
+                            <h3 class="room-title">Deluxe Room</h3>
+                            <p>Luxury accommodation with premium amenities and stunning views.</p>
+                            <div class="room-amenities">
+                                <span class="amenity-tag">WiFi</span>
+                                <span class="amenity-tag">AC</span>
+                                <span class="amenity-tag">Balcony</span>
+                                <span class="amenity-tag">Room Service</span>
+                            </div>
+                            <div class="room-price">LKR 18,000.00 / night</div>
+                            <a href="/rooms?type=Deluxe Room" class="btn btn-primary">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="/rooms" class="btn btn-primary">View All Rooms</a>
+                </div>
+            </section>
+            
+            <!-- Call to Action -->
+            <section class="text-center mt-3 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h2>Ready to Book Your Stay?</h2>
+                        <p>Join thousands of satisfied guests who have experienced our exceptional hospitality.</p>
+                        <div class="mt-2">
+                            <a href="/register" class="btn btn-success">Create Account</a>
+                            <a href="/rooms" class="btn btn-primary">Browse Rooms</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+    
+    <!-- Additional JavaScript for home page -->
+    <th:block th:fragment="additional-js">
+        <script>
+            // Initialize quick search form
+            document.addEventListener('DOMContentLoaded', function() {
+                // Set minimum date to today
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('checkInDate').min = today;
+                document.getElementById('checkOutDate').min = today;
+                
+                // Update checkout date when checkin date changes
+                document.getElementById('checkInDate').addEventListener('change', function() {
+                    const checkOutDate = document.getElementById('checkOutDate');
+                    checkOutDate.min = this.value;
+                    
+                    // If checkout date is before or same as checkin, set it to next day
+                    if (checkOutDate.value && checkOutDate.value <= this.value) {
+                        const nextDay = new Date(this.value);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        checkOutDate.value = nextDay.toISOString().split('T')[0];
+                    }
+                });
+            });
+        </script>
+    </th:block>
+</body>
+</html>

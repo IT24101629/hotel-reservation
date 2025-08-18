@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout}">
+<head>
+    <title>Register - Hotel Reservation System</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="container">
+            <div class="form-container">
+                <h2 class="text-center mb-3">Create Your Account</h2>
+                <p class="text-center mb-3">Join us to enjoy exclusive benefits and seamless booking experience</p>
+                
+                <!-- Registration Form -->
+                <form th:action="@{/register}" method="post" th:object="${registrationForm}" data-validate="true">
+                    <!-- CSRF Token -->
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    
+                    <!-- Personal Information -->
+                    <div class="form-group">
+                        <label for="firstName">First Name <span style="color: red;">*</span></label>
+                        <input type="text" 
+                               id="firstName" 
+                               th:field="*{firstName}" 
+                               class="form-control" 
+                               placeholder="Enter your first name"
+                               required>
+                        <div th:if="${#fields.hasErrors('firstName')}" class="field-error" th:errors="*{firstName}">First name error</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lastName">Last Name <span style="color: red;">*</span></label>
+                        <input type="text" 
+                               id="lastName" 
+                               th:field="*{lastName}" 
+                               class="form-control" 
+                               placeholder="Enter your last name"
+                               required>
+                        <div th:if="${#fields.hasErrors('lastName')}" class="field-error" th:errors="*{lastName}">Last name error</div>
+                    </div>
+                    
+                    <!-- Account Information -->
+                    <div class="form-group">
+                        <label for="username">Username <span style="color: red;">*</span></label>
+                        <input type="text" 
+                               id="username" 
+                               th:field="*{username}" 
+                               class="form-control" 
+                               placeholder="Choose a unique username"
+                               required>
+                        <div th:if="${#fields.hasErrors('username')}" class="field-error" th:errors="*{username}">Username error</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address <span style="color: red;">*</span></label>
+                        <input type="email" 
+                               id="email" 
+                               th:field="*{email}" 
+                               class="form-control" 
+                               placeholder="Enter your email address"
+                               required>
+                        <div th:if="${#fields.hasErrors('email')}" class="field-error" th:errors="*{email}">Email error</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password <span style="color: red;">*</span></label>
+                        <input type="password" 
+                               id="password" 
+                               th:field="*{password}" 
+                               class="form-control" 
+                               placeholder="Create a secure password (min 6 characters)"
+                               required>
+                        <div th:if="${#fields.hasErrors('password')}" class="field-error" th:errors="*{password}">Password error</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password <span style="color: red;">*</span></label>
+                        <input type="password" 
+                               id="confirmPassword" 
+                               th:field="*{confirmPassword}" 
+                               class="form-control" 
+                               placeholder="Confirm your password"
+                               required>
+                        <div th:if="${#fields.hasErrors('confirmPassword')}" class="field-error" th:errors="*{confirmPassword}">Confirm password error</div>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <div class="form-group">
+                        <label for="phoneNumber">Phone Number</label>
+                        <input type="tel" 
+                               id="phoneNumber" 
+                               th:field="*{phoneNumber}" 
+                               class="form-control" 
+                               placeholder="+94771234567">
+                        <div th:if="${#fields.hasErrors('phoneNumber')}" class="field-error" th:errors="*{phoneNumber}">Phone number error</div>
+                    </div>
+                    
+                    <!-- Address Information -->
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <textarea id="address" 
+                                  th:field="*{address}" 
+                                  class="form-control" 
+                                  rows="3" 
+                                  placeholder="Enter your full address"></textarea>
+                        <div th:if="${#fields.hasErrors('address')}" class="field-error" th:errors="*{address}">Address error</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <input type="text" 
+                               id="city" 
+                               th:field="*{city}" 
+                               class="form-control" 
+                               placeholder="Enter your city">
+                        <div th:if="${#fields.hasErrors('city')}" class="field-error" th:errors="*{city}">City error</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="country">Country</label>
+                        <select id="country" th:field="*{country}" class="form-control">
+                            <option value="">Select your country</option>
+                            <option value="Sri Lanka">Sri Lanka</option>
+                            <option value="India">India</option>
+                            <option value="United States">United States</option>
+                            <option value="United Kingdom">United Kingdom</option>
+                            <option value="Australia">Australia</option>
+                            <option value="Canada">Canada</option>
+                            <option value="Singapore">Singapore</option>
+                            <option value="Malaysia">Malaysia</option>
+                            <option value="Thailand">Thailand</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div th:if="${#fields.hasErrors('country')}" class="field-error" th:errors="*{country}">Country error</div>
+                    </div>
+                    
+                    <!-- Terms and Conditions -->
+                    <div class="form-group">
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="agreeToTerms" required>
+                            <span>I agree to the <a href="/terms" target="_blank">Terms and Conditions</a> and <a href="/privacy" target="_blank">Privacy Policy</a> <span style="color: red;">*</span></span>
+                        </label>
+                    </div>
+                    
+                    <!-- Marketing Consent -->
+                    <div class="form-group">
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="marketingConsent" th:field="*{marketingConsent}">
+                            <span>I would like to receive special offers and updates via email</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success form-control">Create Account</button>
+                    </div>
+                    
+                    <!-- Login Link -->
+                    <div class="text-center mt-3">
+                        <p>Already have an account? <a href="/login">Sign in here</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional JavaScript for registration -->
+    <th:block th:fragment="additional-js">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Password confirmation validation
+                const password = document.getElementById('password');
+                const confirmPassword = document.getElementById('confirmPassword');
+                
+                function validatePasswordMatch() {
+                    if (confirmPassword.value && password.value !== confirmPassword.value) {
+                        showFieldError(confirmPassword, 'Passwords do not match');
+                        return false;
+                    } else {
+                        clearFieldError(confirmPassword);
+                        return true;
+                    }
+                }
+                
+                password.addEventListener('input', validatePasswordMatch);
+                confirmPassword.addEventListener('input', validatePasswordMatch);
+                
+                // Username availability check (debounced)
+                const username = document.getElementById('username');
+                let usernameTimeout;
+                
+                username.addEventListener('input', function() {
+                    clearTimeout(usernameTimeout);
+                    const value = this.value.trim();
+                    
+                    if (value.length >= 3) {
+                        usernameTimeout = setTimeout(() => {
+                            checkUsernameAvailability(value);
+                        }, 500);
+                    }
+                });
+                
+                // Email availability check (debounced)
+                const email = document.getElementById('email');
+                let emailTimeout;
+                
+                email.addEventListener('input', function() {
+                    clearTimeout(emailTimeout);
+                    const value = this.value.trim();
+                    
+                    if (value && value.includes('@')) {
+                        emailTimeout = setTimeout(() => {
+                            checkEmailAvailability(value);
+                        }, 500);
+                    }
+                });
+                
+                // Form submission with additional validation
+                const form = document.querySelector('form');
+                form.addEventListener('submit', function(e) {
+                    let isValid = true;
+                    
+                    // Check password match
+                    if (!validatePasswordMatch()) {
+                        isValid = false;
+                    }
+                    
+                    // Check terms acceptance
+                    if (!document.getElementById('agreeToTerms').checked) {
+                        showAlert('Please accept the Terms and Conditions to continue', 'warning');
+                        isValid = false;
+                    }
+                    
+                    if (!isValid) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                });
+            });
+            
+            function checkUsernameAvailability(username) {
+                fetch(`/api/auth/check-username?username=${encodeURIComponent(username)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const field = document.getElementById('username');
+                        if (data.available === false) {
+                            showFieldError(field, 'Username is already taken');
+                        } else {
+                            clearFieldError(field);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking username availability:', error);
+                    });
+            }
+            
+            function checkEmailAvailability(email) {
+                fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const field = document.getElementById('email');
+                        if (data.available === false) {
+                            showFieldError(field, 'Email is already registered');
+                        } else {
+                            clearFieldError(field);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking email availability:', error);
+                    });
+            }
+        </script>
+    </th:block>
+</body>
+</html>

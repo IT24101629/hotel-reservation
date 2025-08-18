@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{layout :: layout}">
+<head>
+    <title>Payment - Hotel Reservation System</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="container">
+            <!-- Page Header -->
+            <section class="mt-2 mb-3 text-center">
+                <h1>💳 Secure Payment</h1>
+                <p>Complete your payment to confirm your booking</p>
+            </section>
+            
+            <!-- Payment Container -->
+            <div class="booking-container">
+                <!-- Payment Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>💳 Payment Information</h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- Booking Information Display -->
+                        <div id="bookingInfo" class="mb-3">
+                            <h3>📋 Booking Confirmation</h3>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div id="bookingInfoPlaceholder" class="text-center">
+                                        <p>Loading booking information...</p>
+                                        <div class="spinner"></div>
+                                    </div>
+                                    <div id="bookingDetails" style="display: none;">
+                                        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                            <div>
+                                                <p><strong>Booking Reference:</strong> <span id="bookingReference">-</span></p>
+                                                <p><strong>Room:</strong> <span id="roomDetails">-</span></p>
+                                                <p><strong>Guest Name:</strong> <span id="guestName">-</span></p>
+                                            </div>
+                                            <div>
+                                                <p><strong>Check-in:</strong> <span id="checkInDisplay">-</span></p>
+                                                <p><strong>Check-out:</strong> <span id="checkOutDisplay">-</span></p>
+                                                <p><strong>Duration:</strong> <span id="durationDisplay">-</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Method Selection -->
+                        <div class="form-group">
+                            <h3>🏦 Select Payment Method</h3>
+                            <div class="payment-methods">
+                                <div class="payment-method selected" data-method="PAYHERE" onclick="selectPaymentMethod('PAYHERE')">
+                                    <h4>💳 PayHere</h4>
+                                    <p>Secure online payment</p>
+                                    <small>Credit/Debit Cards, Bank Transfer</small>
+                                </div>
+                                
+                                <div class="payment-method" data-method="BANK_TRANSFER" onclick="selectPaymentMethod('BANK_TRANSFER')">
+                                    <h4>🏦 Bank Transfer</h4>
+                                    <p>Direct bank transfer</p>
+                                    <small>Manual verification required</small>
+                                </div>
+                                
+                                <div class="payment-method" data-method="CASH" onclick="selectPaymentMethod('CASH')">
+                                    <h4>💰 Pay at Hotel</h4>
+                                    <p>Pay upon arrival</p>
+                                    <small>Cash or card at reception</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- PayHere Payment Form -->
+                        <div id="payherePaymentSection" class="form-group">
+                            <h3>💳 PayHere Secure Payment</h3>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="alert alert-info">
+                                        <strong>🔒 Secure Payment:</strong> Your payment is processed securely through PayHere's encrypted gateway. We do not store your card details.
+                                    </div>
+                                    
+                                    <form id="payherePaymentForm" method="post" action="https://sandbox.payhere.lk/pay/checkout">
+                                        <!-- PayHere Required Fields -->
+                                        <input type="hidden" id="merchant_id" name="merchant_id" value="1221688">
+                                        <input type="hidden" id="return_url" name="return_url" th:value="${#httpServletRequest.scheme + '://' + #httpServletRequest.serverName + ':' + #httpServletRequest.serverPort + '/payment/success'}">
+                                        <input type="hidden" id="cancel_url" name="cancel_url" th:value="${#httpServletRequest.scheme + '://' + #httpServletRequest.serverName + ':' + #httpServletRequest.serverPort + '/payment/cancel'}">
+                                        <input type="hidden" id="notify_url" name="notify_url" th:value="${#httpServletRequest.scheme + '://' + #httpServletRequest.serverName + ':' + #httpServletRequest.serverPort + '/api/payment/payhere/notify'}">
+                                        
+                                        <!-- Order Details -->
+                                        <input type="hidden" id="order_id" name="order_id">
+                                        <input type="hidden" id="items" name="items" value="Hotel Room Booking">
+                                        <input type="hidden" id="currency" name="currency" value="LKR">
+                                        <input type="hidden" id="amount" name="amount">
+                                        
+                                        <!-- Customer Details -->
+                                        <input type="hidden" id="first_name" name="first_name">
+                                        <input type="hidden" id="last_name" name="last_name">
+                                        <input type="hidden" id="email" name="email">
+                                        <input type="hidden" id="phone" name="phone">
+                                        <input type="hidden" id="address" name="address" value="Hotel Booking Address">
+                                        <input type="hidden" id="city" name="city" value="Colombo">
+                                        <input type="hidden" id="country" name="country" value="Sri Lanka">
+                                        
+                                        <!-- Custom Parameters -->
+                                        <input type="hidden" id="custom_1" name="custom_1">
+                                        <input type="hidden" id="custom_2" name="custom_2">
+                                        
+                                        <!-- Hash -->
+                                        <input type="hidden" id="hash" name="hash">
+                                        
+                                        <!-- Payment Summary in Form -->
+                                        <div class="payment-form-summary">
+                                            <h4>Payment Summary</h4>
+                                            <div class="summary-item">
+                                                <span>Total Amount:</span>
+                                                <span id="paymentAmount" class="total-amount">LKR 0.00</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span>Payment Method:</span>
+                                                <span>PayHere Secure Gateway</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span>Processing Fee:</span>
+                                                <span>Included</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-3">
+                                            <button type="submit" id="payNowBtn" class="btn btn-success form-control" disabled>
+                                                🔒 Pay Securely with PayHere
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Bank Transfer Instructions -->
+                        <div id="bankTransferSection" class="form-group" style="display: none;">
+                            <h3>🏦 Bank Transfer Details</h3>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="alert alert-warning">
+                                        <strong>⚠️ Important:</strong> Your booking will be on hold until payment is verified. Please transfer the exact amount and send proof of payment.
+                                    </div>
+                                    
+                                    <h4>Bank Details:</h4>
+                                    <div class="bank-details">
+                                        <p><strong>Bank:</strong> Commercial Bank of Ceylon PLC</p>
+                                        <p><strong>Account Name:</strong> Gold Palm Hotel (Pvt) Ltd</p>
+                                        <p><strong>Account Number:</strong> 8001234567890</p>
+                                        <p><strong>Branch:</strong> Colombo Main Branch</p>
+                                        <p><strong>SWIFT Code:</strong> CCEYLKLX</p>
+                                    </div>
+                                    
+                                    <h4 class="mt-3">Transfer Instructions:</h4>
+                                    <ol>
+                                        <li>Transfer the exact amount: <strong id="bankTransferAmount">LKR 0.00</strong></li>
+                                        <li>Use booking reference <strong id="bankTransferReference">-</strong> as the transfer reference</li>
+                                        <li>Email proof of payment to: <strong>payments@goldpalmhotel.com</strong></li>
+                                        <li>Include your booking reference in the email subject</li>
+                                    </ol>
+                                    
+                                    <div class="mt-3">
+                                        <button type="button" id="confirmBankTransferBtn" class="btn btn-primary form-control" onclick="confirmBankTransfer()">
+                                            📧 I will transfer the amount and send proof
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Cash Payment Section -->
+                        <div id="cashPaymentSection" class="form-group" style="display: none;">
+                            <h3>💰 Pay at Hotel</h3>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="alert alert-info">
+                                        <strong>💡 Payment at Hotel:</strong> You can pay when you arrive at the hotel. Your booking will be held for 24 hours.
+                                    </div>
+                                    
+                                    <h4>Payment Information:</h4>
+                                    <ul>
+                                        <li>Amount to pay: <strong id="cashPaymentAmount">LKR 0.00</strong></li>
+                                        <li>Payment methods accepted: Cash, Credit Card, Debit Card</li>
+                                        <li>Pay at the reception desk during check-in</li>
+                                        <li>Booking reference: <strong id="cashPaymentReference">-</strong></li>
+                                    </ul>
+                                    
+                                    <div class="alert alert-warning">
+                                        <strong>⚠️ Important:</strong> 
+                                        <ul class="mb-0">
+                                            <li>Your booking will be automatically cancelled if payment is not made within 24 hours of arrival</li>
+                                            <li>Please bring a valid government-issued photo ID</li>
+                                            <li>Late arrivals (after 10 PM) should inform the hotel in advance</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <button type="button" id="confirmCashPaymentBtn" class="btn btn-success form-control" onclick="confirmCashPayment()">
+                                            ✅ Confirm Booking - Pay at Hotel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Terms and Security Info -->
+                        <div class="form-group">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>🔒 Security & Terms</h4>
+                                    <div style="font-size: 0.9rem; line-height: 1.4;">
+                                        <p><strong>Security:</strong> All payments are processed through SSL encrypted connections. Your card details are never stored on our servers.</p>
+                                        <p><strong>Refunds:</strong> Cancellations made 24+ hours before check-in are eligible for full refund. Processing time: 3-5 business days.</p>
+                                        <p><strong>Booking Policy:</strong> By proceeding with payment, you agree to our terms and conditions and cancellation policy.</p>
+                                        <p><strong>Support:</strong> For payment issues, contact us at <strong>support@goldpalmhotel.com</strong> or <strong>+94 11 1234567</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment Summary Sidebar -->
+                <div class="booking-summary">
+                    <h3>💰 Payment Summary</h3>
+                    
+                    <div id="paymentSummaryContent">
+                        <div id="paymentSummaryPlaceholder" class="text-center">
+                            <p>Loading payment details...</p>
+                            <div class="spinner"></div>
+                        </div>
+                        
+                        <div id="paymentSummaryDetails" style="display: none;">
+                            <!-- Room Details -->
+                            <div class="summary-section">
+                                <h4>🏨 Booking Details</h4>
+                                <div class="summary-item">
+                                    <span>Room:</span>
+                                    <span id="summaryRoomType">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Dates:</span>
+                                    <span id="summaryDates">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Guests:</span>
+                                    <span id="summaryGuests">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Duration:</span>
+                                    <span id="summaryNights">-</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Price Breakdown -->
+                            <div class="summary-section">
+                                <h4>💵 Price Breakdown</h4>
+                                <div class="summary-item">
+                                    <span>Room rate:</span>
+                                    <span id="summaryRoomRate">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Subtotal:</span>
+                                    <span id="summarySubtotal">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Service charge (10%):</span>
+                                    <span id="summaryServiceCharge">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Taxes (2%):</span>
+                                    <span id="summaryTaxes">-</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Total -->
+                            <div class="total-amount">
+                                <div class="summary-item">
+                                    <span>Total Amount:</span>
+                                    <span id="summaryTotal">LKR 0.00</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Payment Security -->
+                            <div class="mt-2">
+                                <div class="alert alert-success" style="padding: 0.75rem; font-size: 0.9rem;">
+                                    <strong>🔒 100% Secure</strong><br>
+                                    SSL encrypted<br>
+                                    PCI DSS compliant<br>
+                                    No card details stored
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional JavaScript for payment page -->
+    <th:block th:fragment="additional-js">
+        <script>
+            let currentBookingData = null;
+            let selectedPaymentMethod = 'PAYHERE';
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                loadBookingData();
+                initializePaymentMethods();
+            });
+            
+            function loadBookingData() {
+                // Get booking ID from URL or session storage
+                const urlParams = new URLSearchParams(window.location.search);
+                const bookingId = urlParams.get('bookingId');
+                
+                if (bookingId) {
+                    fetchBookingData(bookingId);
+                } else {
+                    // Try to get from session storage
+                    const pendingBooking = JSON.parse(sessionStorage.getItem('pendingBooking') || '{}');
+                    if (pendingBooking.bookingId) {
+                        fetchBookingData(pendingBooking.bookingId);
+                    } else {
+                        showAlert('No booking found. Please start a new booking.', 'error');
+                        setTimeout(() => window.location.href = '/rooms', 3000);
+                    }
+                }
+            }
+            
+            function fetchBookingData(bookingId) {
+                fetch(`/api/bookings/${bookingId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Booking not found');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        currentBookingData = data;
+                        displayBookingInfo(data);
+                        displayPaymentSummary(data);
+                        setupPaymentForm(data);
+                    })
+                    .catch(error => {
+                        console.error('Error loading booking:', error);
+                        showAlert('Error loading booking information. Please try again.', 'error');
+                    });
+            }
+            
+            function displayBookingInfo(booking) {
+                document.getElementById('bookingInfoPlaceholder').style.display = 'none';
+                document.getElementById('bookingDetails').style.display = 'block';
+                
+                document.getElementById('bookingReference').textContent = booking.bookingReference;
+                document.getElementById('roomDetails').textContent = `${booking.roomNumber} (${booking.roomTypeName})`;
+                document.getElementById('guestName').textContent = booking.customerName;
+                document.getElementById('checkInDisplay').textContent = formatDate(booking.checkInDate);
+                document.getElementById('checkOutDisplay').textContent = formatDate(booking.checkOutDate);
+                document.getElementById('durationDisplay').textContent = `${booking.numberOfNights} night${booking.numberOfNights !== 1 ? 's' : ''}`;
+            }
+            
+            function displayPaymentSummary(booking) {
+                document.getElementById('paymentSummaryPlaceholder').style.display = 'none';
+                document.getElementById('paymentSummaryDetails').style.display = 'block';
+                
+                const subtotal = booking.roomPricePerNight * booking.numberOfNights;
+                const serviceCharge = subtotal * 0.10;
+                const taxes = subtotal * 0.02;
+                
+                document.getElementById('summaryRoomType').textContent = booking.roomTypeName;
+                document.getElementById('summaryDates').textContent = `${formatDateShort(booking.checkInDate)} - ${formatDateShort(booking.checkOutDate)}`;
+                document.getElementById('summaryGuests').textContent = `${booking.numberOfGuests} guest${booking.numberOfGuests !== 1 ? 's' : ''}`;
+                document.getElementById('summaryNights').textContent = `${booking.numberOfNights} night${booking.numberOfNights !== 1 ? 's' : ''}`;
+                document.getElementById('summaryRoomRate').textContent = `${formatCurrency(booking.roomPricePerNight)} × ${booking.numberOfNights}`;
+                document.getElementById('summarySubtotal').textContent = formatCurrency(subtotal);
+                document.getElementById('summaryServiceCharge').textContent = formatCurrency(serviceCharge);
+                document.getElementById('summaryTaxes').textContent = formatCurrency(taxes);
+                document.getElementById('summaryTotal').textContent = formatCurrency(booking.totalAmount);
+                
+                // Update all amount displays
+                document.getElementById('paymentAmount').textContent = formatCurrency(booking.totalAmount);
+                document.getElementById('bankTransferAmount').textContent = formatCurrency(booking.totalAmount);
+                document.getElementById('cashPaymentAmount').textContent = formatCurrency(booking.totalAmount);
+                document.getElementById('bankTransferReference').textContent = booking.bookingReference;
+                document.getElementById('cashPaymentReference').textContent = booking.bookingReference;
+            }
+            
+            function setupPaymentForm(booking) {
+                // Setup PayHere form
+                document.getElementById('order_id').value = booking.bookingReference;
+                document.getElementById('amount').value = booking.totalAmount.toFixed(2);
+                document.getElementById('first_name').value = booking.customerName.split(' ')[0] || 'Guest';
+                document.getElementById('last_name').value = booking.customerName.split(' ').slice(1).join(' ') || 'Customer';
+                document.getElementById('email').value = booking.customerEmail;
+                document.getElementById('phone').value = booking.customerPhone || '+94771234567';
+                document.getElementById('custom_1').value = booking.bookingId;
+                document.getElementById('custom_2').value = booking.customerId;
+                
+                // Generate hash for PayHere
+                generatePayHereHash(booking);
+                
+                // Enable payment button
+                document.getElementById('payNowBtn').disabled = false;
+            }
+            
+            function generatePayHereHash(booking) {
+                // This should be generated on the server side for security
+                // For now, we'll make an API call to generate the hash
+                fetch('/api/payment/payhere/generate-hash', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        orderId: booking.bookingReference,
+                        amount: booking.totalAmount.toFixed(2),
+                        currency: 'LKR'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.hash) {
+                        document.getElementById('hash').value = data.hash;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error generating hash:', error);
+                });
+            }
+            
+            function initializePaymentMethods() {
+                selectPaymentMethod('PAYHERE');
+            }
+            
+            function selectPaymentMethod(method) {
+                selectedPaymentMethod = method;
+                
+                // Update UI
+                document.querySelectorAll('.payment-method').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                document.querySelector(`[data-method="${method}"]`).classList.add('selected');
+                
+                // Show/hide payment sections
+                document.getElementById('payherePaymentSection').style.display = method === 'PAYHERE' ? 'block' : 'none';
+                document.getElementById('bankTransferSection').style.display = method === 'BANK_TRANSFER' ? 'block' : 'none';
+                document.getElementById('cashPaymentSection').style.display = method === 'CASH' ? 'block' : 'none';
+            }
+            
+            function confirmBankTransfer() {
+                if (confirm('Please confirm that you will transfer the payment and send proof to our email. Your booking will be on hold until payment is verified.')) {
+                    processAlternativePayment('BANK_TRANSFER');
+                }
+            }
+            
+            function confirmCashPayment() {
+                if (confirm('Please confirm that you will pay at the hotel during check-in. Your booking will be held for 24 hours from your arrival time.')) {
+                    processAlternativePayment('CASH');
+                }
+            }
+            
+            function processAlternativePayment(paymentMethod) {
+                showLoading('Processing your booking...');
+                
+                fetch('/api/payment/alternative', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        bookingId: currentBookingData.bookingId,
+                        paymentMethod: paymentMethod
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        showAlert('Booking confirmed! You will receive a confirmation email shortly.', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/booking/confirmation?bookingId=' + currentBookingData.bookingId;
+                        }, 2000);
+                    } else {
+                        showAlert(data.error || 'Error processing payment. Please try again.', 'error');
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Payment processing error:', error);
+                    showAlert('Error processing payment. Please try again.', 'error');
+                });
+            }
+            
+            // PayHere form submission
+            document.getElementById('payherePaymentForm').addEventListener('submit', function(e) {
+                // Let the form submit to PayHere naturally
+                showLoading('Redirecting to PayHere secure payment...');
+                
+                // Store booking data for return handling
+                sessionStorage.setItem('paymentBookingData', JSON.stringify(currentBookingData));
+            });
+            
+            function formatCurrency(amount) {
+                return `LKR ${amount.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            }
+            
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+            
+            function formatDateShort(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+        </script>
+    </th:block>
+    
+    <!-- Additional CSS for payment page -->
+    <th:block th:fragment="additional-css">
+        <style>
+            .payment-methods {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem;
+                margin: 1rem 0;
+            }
+            
+            .payment-method {
+                padding: 1.5rem;
+                border: 2px solid #ddd;
+                border-radius: 10px;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                background: white;
+            }
+            
+            .payment-method:hover {
+                border-color: #3498db;
+                background: #f8f9ff;
+                transform: translateY(-2px);
+            }
+            
+            .payment-method.selected {
+                border-color: #3498db;
+                background: #e3f2fd;
+                box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+            }
+            
+            .payment-method h4 {
+                margin: 0 0 0.5rem 0;
+                color: #2c3e50;
+            }
+            
+            .payment-method p {
+                margin: 0 0 0.25rem 0;
+                color: #666;
+            }
+            
+            .payment-method small {
+                color: #999;
+                font-size: 0.8rem;
+            }
+            
+            .payment-form-summary {
+                background: #f8f9fa;
+                padding: 1rem;
+                border-radius: 5px;
+                margin: 1rem 0;
+            }
+            
+            .payment-form-summary h4 {
+                margin: 0 0 1rem 0;
+                color: #2c3e50;
+            }
+            
+            .bank-details {
+                background: #f8f9fa;
+                padding: 1rem;
+                border-radius: 5px;
+                margin: 1rem 0;
+            }
+            
+            .bank-details p {
+                margin: 0.5rem 0;
+            }
+            
+            .grid {
+                display: grid;
+            }
+            
+            @media (max-width: 768px) {
+                .payment-methods {
+                    grid-template-columns: 1fr;
+                }
+                
+                .booking-container {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </th:block>
+</body>
+</html>
