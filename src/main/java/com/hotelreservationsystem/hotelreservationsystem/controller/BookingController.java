@@ -4,12 +4,18 @@ import com.hotelreservationsystem.hotelreservationsystem.dto.BookingRequestDTO;
 import com.hotelreservationsystem.hotelreservationsystem.dto.BookingResponseDTO;
 import com.hotelreservationsystem.hotelreservationsystem.model.BookingStatus;
 import com.hotelreservationsystem.hotelreservationsystem.service.BookingService;
+import com.hotelreservationsystem.hotelreservationsystem.service.CustomerService;
+import com.hotelreservationsystem.hotelreservationsystem.service.UserService;
+import com.hotelreservationsystem.hotelreservationsystem.model.User;
+import com.hotelreservationsystem.hotelreservationsystem.model.Customer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,12 +26,36 @@ public class BookingController {
 
     @Autowired
     private BookingService bookingService;
+    
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private CustomerService customerService;
 
     @PostMapping("/create")
-    public ResponseEntity<Map<String, Object>> createBooking(@Valid @RequestBody BookingRequestDTO bookingRequest) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> createBooking(@Valid @RequestBody BookingRequestDTO bookingRequest, 
+                                                               Authentication authentication) {
         Map<String, Object> response = new HashMap<>();
         
         try {
+            // Get the authenticated user
+            String username = authentication.getName();
+            User user = userService.findByEmail(username);
+            
+            if (user == null) {
+                response.put("success", false);
+                response.put("error", "User not found");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // Get or create customer for this user
+            Customer customer = customerService.getOrCreateCustomerProfile(user);
+            
+            // Set the customer ID from authenticated user
+            bookingRequest.setCustomerId(customer.getCustomerId());
+            
             BookingResponseDTO booking = bookingService.createBooking(bookingRequest);
             response.put("success", true);
             response.put("message", "Booking created successfully");

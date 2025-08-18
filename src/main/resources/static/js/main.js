@@ -226,25 +226,52 @@ function displaySearchResults(rooms) {
                     <p><strong>Floor:</strong> ${room.floorNumber}</p>
                     <p><strong>Max Occupancy:</strong> ${room.maxOccupancy} guests</p>
                 </div>
-                <button class="btn btn-primary" onclick="selectRoom(${room.roomId}, '${room.roomNumber}', ${room.pricePerNight}, '${room.roomType}')">
-                    Select Room
+                <button class="btn btn-primary" onclick="selectRoom(${room.roomId}, '${room.roomNumber}', ${room.pricePerNight}, '${room.roomType}', ${room.maxOccupancy})">
+                    📅 Book This Room
                 </button>
             </div>
         </div>
     `).join('');
 }
 
-function selectRoom(roomId, roomNumber, pricePerNight, roomType) {
-    // Store selected room data
-    sessionStorage.setItem('selectedRoom', JSON.stringify({
-        roomId,
-        roomNumber,
-        pricePerNight,
-        roomType
-    }));
+function selectRoom(roomId, roomNumber, pricePerNight, roomType, maxOccupancy) {
+    console.log('selectRoom called from main.js with:', {roomId, roomNumber, pricePerNight, roomType, maxOccupancy});
+    
+    // Get search form values, with defaults if empty
+    const checkInDate = document.getElementById('checkInDate')?.value || getDefaultCheckInDate();
+    const checkOutDate = document.getElementById('checkOutDate')?.value || getDefaultCheckOutDate();
+    const numberOfGuests = document.getElementById('guests')?.value || 2;
+    
+    // Store selected room data (compatible with booking.html)
+    const selectedRoomData = {
+        roomId: parseInt(roomId),
+        roomNumber: roomNumber,
+        pricePerNight: parseFloat(pricePerNight),
+        roomType: roomType,
+        maxOccupancy: parseInt(maxOccupancy) || 4,
+        checkInDate: checkInDate,
+        checkOutDate: checkOutDate,
+        numberOfGuests: parseInt(numberOfGuests)
+    };
+    
+    console.log('Storing room data in sessionStorage:', selectedRoomData);
+    sessionStorage.setItem('selectedRoomData', JSON.stringify(selectedRoomData));
     
     // Redirect to booking page
+    console.log('Redirecting to booking page...');
     window.location.href = '/booking';
+}
+
+function getDefaultCheckInDate() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+}
+
+function getDefaultCheckOutDate() {
+    const dayAfterTomorrow = new Date();
+    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+    return dayAfterTomorrow.toISOString().split('T')[0];
 }
 
 // Booking Form
@@ -252,14 +279,25 @@ function initializeBookingForm() {
     const bookingForm = document.getElementById('bookingForm');
     
     if (bookingForm) {
-        // Load selected room data
-        const selectedRoom = JSON.parse(sessionStorage.getItem('selectedRoom') || '{}');
+        // Load selected room data (try both keys for compatibility)
+        const selectedRoomData = JSON.parse(sessionStorage.getItem('selectedRoomData') || sessionStorage.getItem('selectedRoom') || '{}');
         
-        if (selectedRoom.roomId) {
-            document.getElementById('selectedRoomNumber').textContent = selectedRoom.roomNumber;
-            document.getElementById('selectedRoomType').textContent = selectedRoom.roomType;
-            document.getElementById('roomPricePerNight').textContent = `LKR ${selectedRoom.pricePerNight.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-            document.getElementById('roomId').value = selectedRoom.roomId;
+        console.log('Loading booking form with room data:', selectedRoomData);
+        
+        if (selectedRoomData.roomId) {
+            const selectedRoomNumber = document.getElementById('selectedRoomNumber');
+            const selectedRoomType = document.getElementById('selectedRoomType');
+            const roomPricePerNight = document.getElementById('roomPricePerNight');
+            const roomIdInput = document.getElementById('roomId');
+            
+            if (selectedRoomNumber) selectedRoomNumber.textContent = selectedRoomData.roomNumber;
+            if (selectedRoomType) selectedRoomType.textContent = selectedRoomData.roomType;
+            if (roomPricePerNight) roomPricePerNight.textContent = `LKR ${selectedRoomData.pricePerNight.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            if (roomIdInput) roomIdInput.value = selectedRoomData.roomId;
+            
+            console.log('Booking form initialized with room:', selectedRoomData.roomType, selectedRoomData.roomNumber);
+        } else {
+            console.log('No room data found in sessionStorage');
         }
         
         bookingForm.addEventListener('submit', function(e) {
@@ -279,10 +317,11 @@ function submitBooking() {
     
     showLoading('Creating your booking...');
     
-    fetch('/api/bookings', {
+    fetch('/api/bookings/create', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content || document.querySelector('input[name="_csrf"]')?.value || ''
         },
         body: JSON.stringify(bookingData)
     })
@@ -481,6 +520,7 @@ function updateDashboardStats(stats) {
 
 // Export functions for global use
 window.selectRoom = selectRoom;
+window.selectRoomForBooking = selectRoom; // Alias for consistency
 window.showAlert = showAlert;
 window.formatCurrency = formatCurrency;
 window.formatDate = formatDate;

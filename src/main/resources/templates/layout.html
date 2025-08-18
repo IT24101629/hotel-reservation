@@ -3,16 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${title} ?: 'Hotel Reservation System'">Hotel Reservation System</title>
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-
-    <!-- CSS -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:replace="${title}">Hotel Reservation System</title>
     <link rel="stylesheet" href="/css/style.css">
-
-    <!-- Additional CSS block for child templates -->
-    <th:block th:replace="~{${content} :: additional-css}" th:remove="tag"></th:block>
 </head>
 <body>
 <!-- Header -->
@@ -50,7 +44,7 @@
 
                 <th:block sec:authorize="isAuthenticated()">
                     <li>
-                        <span>Welcome, <span sec:authentication="principal.firstName">User</span>!</span>
+                        <span>Welcome, <span sec:authentication="name">User</span>!</span>
                     </li>
                     <li>
                         <form th:action="@{/auth/logout}" method="post" style="display: inline;">
@@ -89,10 +83,10 @@
         </div>
     </div>
 
-    <!-- Page Content -->
-    <div th:replace="~{${content}}">
-        <!-- This will be replaced by the content from child templates -->
-    </div>
+    <!-- Page Content will be included here -->
+    <th:block th:replace="${content}">
+        <!-- Content will be replaced here -->
+    </th:block>
 </main>
 
 <!-- Footer -->
@@ -106,7 +100,9 @@
 <!-- JavaScript -->
 <script src="/js/main.js"></script>
 
-<!-- Additional JavaScript block for child templates -->
-<th:block th:replace="~{${content} :: additional-js}" th:remove="tag"></th:block>
+<!-- Include additional JavaScript fragments if they exist -->
+<th:block th:replace="rooms :: additional-js" th:if="${#strings.contains(#httpServletRequest.requestURI, 'rooms')}"></th:block>
+<th:block th:replace="booking :: additional-js" th:if="${#strings.contains(#httpServletRequest.requestURI, 'booking')}"></th:block>
+<th:block th:replace="payment :: additional-js" th:if="${#strings.contains(#httpServletRequest.requestURI, 'payment')}"></th:block>
 </body>
 </html>
