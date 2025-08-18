@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
+<head>
+    <title>My Bookings - Hotel Reservation System</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="container">
+        <!-- Page Header -->
+        <section class="mt-2 mb-3 text-center">
+            <h1>📋 My Bookings</h1>
+            <p>View and manage your hotel reservations</p>
+        </section>
+
+        <!-- Bookings List -->
+        <section class="mb-3" th:if="${bookings != null and !#lists.isEmpty(bookings)}">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Your Reservations</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table">
+                        <table style="width: 100%;">
+                            <thead>
+                            <tr>
+                                <th>Booking Reference</th>
+                                <th>Room</th>
+                                <th>Check-in</th>
+                                <th>Check-out</th>
+                                <th>Guests</th>
+                                <th>Status</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="booking : ${bookings}">
+                                <td th:text="${booking.bookingReference}">BK123456</td>
+                                <td th:text="${booking.roomNumber + ' (' + booking.roomType + ')'}">101 (Deluxe)</td>
+                                <td th:text="${#temporals.format(booking.checkInDate, 'MMM dd, yyyy')}">Jan 15, 2025</td>
+                                <td th:text="${#temporals.format(booking.checkOutDate, 'MMM dd, yyyy')}">Jan 18, 2025</td>
+                                <td th:text="${booking.numberOfGuests}">2</td>
+                                <td>
+                                            <span class="amenity-tag"
+                                                  th:classappend="${booking.bookingStatus.name() == 'CONFIRMED' ? 'confirmed' :
+                                                                 booking.bookingStatus.name() == 'PENDING' ? 'pending' :
+                                                                 booking.bookingStatus.name() == 'CANCELLED' ? 'cancelled' : ''}"
+                                                  th:text="${booking.bookingStatus}">CONFIRMED</span>
+                                </td>
+                                <td th:text="'LKR ' + ${#numbers.formatDecimal(booking.totalAmount, 1, 2)}">LKR 54,000.00</td>
+                                <td>
+                                    <a th:href="@{'/booking/' + ${booking.bookingId}}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">View</a>
+                                    <button th:if="${booking.bookingStatus.name() == 'CONFIRMED' or booking.bookingStatus.name() == 'PENDING'}"
+                                            class="btn btn-danger"
+                                            style="padding: 0.5rem 1rem; margin-left: 0.5rem;"
+                                            th:onclick="'cancelBooking(' + ${booking.bookingId} + ')'">Cancel</button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- No Bookings Message -->
+        <section class="mb-3" th:if="${bookings == null or #lists.isEmpty(bookings)}">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3>📅 No Bookings Found</h3>
+                    <p>You haven't made any bookings yet. Start exploring our amazing rooms and make your first reservation!</p>
+                    <a href="/rooms" class="btn btn-primary">Browse Available Rooms</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3>Quick Actions</h3>
+                    <div class="mt-2">
+                        <a href="/rooms" class="btn btn-primary">🏨 Book New Room</a>
+                        <a href="/dashboard" class="btn btn-secondary">🏠 Back to Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- Additional JavaScript -->
+<th:block th:fragment="additional-js">
+    <script>
+        function cancelBooking(bookingId) {
+            if (confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
+                fetch('/api/bookings/' + bookingId + '/cancel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+                    },
+                    body: JSON.stringify({
+                        reason: 'Cancelled by customer'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Booking cancelled successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error cancelling booking: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error cancelling booking. Please try again.');
+                });
+            }
+        }
+    </script>
+</th:block>
+
+<!-- Additional CSS -->
+<th:block th:fragment="additional-css">
+    <style>
+        .amenity-tag.confirmed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .amenity-tag.pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .amenity-tag.cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+    </style>
+</th:block>
+</body>
+</html>

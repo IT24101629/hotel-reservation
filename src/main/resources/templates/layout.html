@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="layout (title, content)">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${title != null ? title : 'Hotel Reservation System'}">Hotel Reservation System</title>
+    <title th:text="${title} ?: 'Hotel Reservation System'">Hotel Reservation System</title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
@@ -11,10 +11,8 @@
     <!-- CSS -->
     <link rel="stylesheet" href="/css/style.css">
 
-    <!-- Additional CSS from child templates -->
-    <th:block th:fragment="additional-css">
-        <!-- This will be replaced by child templates -->
-    </th:block>
+    <!-- Additional CSS block for child templates -->
+    <th:block th:replace="~{${content} :: additional-css}" th:remove="tag"></th:block>
 </head>
 <body>
 <!-- Header -->
@@ -92,13 +90,9 @@
     </div>
 
     <!-- Page Content -->
-    <th:block th:fragment="content">
+    <div th:replace="~{${content}}">
         <!-- This will be replaced by the content from child templates -->
-        <div class="container">
-            <h1>Default Layout Content</h1>
-            <p>This should be replaced by child template content.</p>
-        </div>
-    </th:block>
+    </div>
 </main>
 
 <!-- Footer -->
@@ -112,9 +106,7 @@
 <!-- JavaScript -->
 <script src="/js/main.js"></script>
 
-<!-- Additional JavaScript from child templates -->
-<th:block th:fragment="additional-js">
-    <!-- This will be replaced by child templates -->
-</th:block>
+<!-- Additional JavaScript block for child templates -->
+<th:block th:replace="~{${content} :: additional-js}" th:remove="tag"></th:block>
 </body>
 </html>
