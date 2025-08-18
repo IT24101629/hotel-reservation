@@ -80,7 +80,10 @@
             <div id="searchResults" class="rooms-grid">
                 <!-- Available rooms will be displayed here -->
                 <div th:each="room : ${availableRooms}" class="room-card">
-                    <img th:src="${room.imageUrl}" th:alt="${room.roomType.typeName}" class="room-image" onerror="this.src='/images/room-default.svg'">
+                    <img th:src="${room.imageUrl != null ? room.imageUrl : '/images/room-default.jpg'}"
+                         th:alt="${room.roomType.typeName}"
+                         class="room-image"
+                         onerror="this.src='/images/room-default.jpg'">
                     <div class="room-info">
                         <h3 class="room-title" th:text="${room.roomType.typeName}">Room Type</h3>
                         <p class="room-description" th:text="${room.description}">Room description</p>
@@ -90,22 +93,23 @@
                             <p><strong>Max Occupancy:</strong> <span th:text="${room.roomType.maxOccupancy}">2</span> guests</p>
                         </div>
                         <div class="room-amenities">
-                            <!-- This would need to be parsed from JSON if amenities are stored as JSON -->
+                            <!-- Static amenities for display -->
                             <span class="amenity-tag">📶 WiFi</span>
                             <span class="amenity-tag">❄️ AC</span>
                             <span class="amenity-tag">📺 TV</span>
+                            <span class="amenity-tag">🛁 Private Bathroom</span>
                         </div>
                         <div class="room-price">
                             LKR <span th:text="${#numbers.formatDecimal(room.pricePerNight, 1, 2)}">0.00</span> / night
                         </div>
                         <div class="mt-2">
+                            <!-- Fixed button using data attributes instead of onclick -->
                             <button class="btn btn-primary book-room-btn"
                                     th:data-room-id="${room.roomId}"
                                     th:data-room-number="${room.roomNumber}"
                                     th:data-price="${room.pricePerNight}"
                                     th:data-room-type="${room.roomType.typeName}"
                                     th:data-max-occupancy="${room.roomType.maxOccupancy}"
-                                    th:onclick="'selectRoom(' + ${room.roomId} + ', \'' + ${room.roomNumber} + '\', ' + ${room.pricePerNight} + ', \'' + ${room.roomType.typeName} + '\', ' + ${room.roomType.maxOccupancy} + ')'"
                                     sec:authorize="isAuthenticated()">
                                 📅 Book This Room
                             </button>
@@ -137,43 +141,32 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Rooms page JavaScript loading...');
             
-            // Ensure selectRoom function is available globally
-            if (typeof window.selectRoom !== 'function') {
-                console.log('selectRoom function not available, creating fallback...');
-                window.selectRoom = function(roomId, roomNumber, pricePerNight, roomType, maxOccupancy) {
-                    console.log('Fallback selectRoom called:', {roomId, roomNumber, pricePerNight, roomType, maxOccupancy});
-                    
-                    const checkInDate = document.getElementById('checkInDate')?.value || getDefaultCheckInDate();
-                    const checkOutDate = document.getElementById('checkOutDate')?.value || getDefaultCheckOutDate();
-                    const numberOfGuests = document.getElementById('guests')?.value || 2;
-                    
-                    const selectedRoomData = {
-                        roomId: parseInt(roomId),
-                        roomNumber: roomNumber,
-                        pricePerNight: parseFloat(pricePerNight),
-                        roomType: roomType,
-                        maxOccupancy: parseInt(maxOccupancy) || 4,
-                        checkInDate: checkInDate,
-                        checkOutDate: checkOutDate,
-                        numberOfGuests: parseInt(numberOfGuests)
-                    };
-                    
-                    console.log('Storing room data:', selectedRoomData);
-                    sessionStorage.setItem('selectedRoomData', JSON.stringify(selectedRoomData));
-                    window.location.href = '/booking';
-                };
-                
-                window.getDefaultCheckInDate = function() {
-                    const tomorrow = new Date();
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    return tomorrow.toISOString().split('T')[0];
-                };
-                
-                window.getDefaultCheckOutDate = function() {
-                    const dayAfterTomorrow = new Date();
-                    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
-                    return dayAfterTomorrow.toISOString().split('T')[0];
-                };
+            // Debug session storage state
+            console.log('Session storage state on rooms page:');
+            console.log('- selectedRoomData:', sessionStorage.getItem('selectedRoomData'));
+            console.log('- bookingData:', sessionStorage.getItem('bookingData'));
+            console.log('- pendingBooking:', sessionStorage.getItem('pendingBooking'));
+            
+            // Check if we're in a redirect loop and break it
+            const redirectCount = sessionStorage.getItem('redirectCount') || '0';
+            const lastPage = sessionStorage.getItem('lastPage');
+            
+            if (lastPage === 'payment' && parseInt(redirectCount) > 2) {
+                console.log('Detected redirect loop, clearing all session data');
+                sessionStorage.clear();
+                sessionStorage.setItem('loopBroken', 'true');
+            }
+            
+            sessionStorage.setItem('lastPage', 'rooms');
+            sessionStorage.setItem('redirectCount', String(parseInt(redirectCount) + 1));
+            
+            // Clean up any stale session data that might cause issues
+            const urlParams = new URLSearchParams(window.location.search);
+            if (!urlParams.has('keepSession')) {
+                // Only clear payment-related session data, keep room selection data
+                sessionStorage.removeItem('bookingData');
+                sessionStorage.removeItem('pendingBooking');
+                console.log('Cleaned up stale session data');
             }
             
             initializeRoomsPage();
@@ -188,16 +181,10 @@
 
         function initializeBookingButtons() {
             console.log('Initializing booking buttons...');
-            
-            // Check if selectRoom function is available
-            if (typeof selectRoom !== 'function') {
-                console.error('selectRoom function not available from main.js');
-                return;
-            }
-            
+
             const bookButtons = document.querySelectorAll('.book-room-btn');
             console.log('Found', bookButtons.length, 'book room buttons');
-            
+
             bookButtons.forEach((button, index) => {
                 console.log('Setting up button', index, 'with data:', {
                     roomId: button.dataset.roomId,
@@ -206,37 +193,67 @@
                     roomType: button.dataset.roomType,
                     maxOccupancy: button.dataset.maxOccupancy
                 });
-                
+
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
                     console.log('Book room button clicked!');
-                    console.log('Button element:', this);
-                    console.log('All dataset properties:', this.dataset);
-                    
+
                     try {
                         const roomId = this.dataset.roomId;
                         const roomNumber = this.dataset.roomNumber;
                         const pricePerNight = this.dataset.price;
                         const roomType = this.dataset.roomType;
                         const maxOccupancy = this.dataset.maxOccupancy;
-                        
+
                         console.log('Extracted values:', {roomId, roomNumber, pricePerNight, roomType, maxOccupancy});
-                        
+
                         if (!roomId) {
                             console.error('Missing room ID in dataset');
                             alert('Error: Room ID not found. Please refresh the page and try again.');
                             return;
                         }
-                        
-                        // Call selectRoom function from main.js
-                        window.selectRoom(roomId, roomNumber, pricePerNight, roomType, maxOccupancy);
-                        
+
+                        // Get current search criteria
+                        const checkInDate = document.getElementById('checkInDate')?.value || getDefaultCheckInDate();
+                        const checkOutDate = document.getElementById('checkOutDate')?.value || getDefaultCheckOutDate();
+                        const numberOfGuests = document.getElementById('guests')?.value || 2;
+
+                        // Store selected room data
+                        const selectedRoomData = {
+                            roomId: parseInt(roomId),
+                            roomNumber: roomNumber,
+                            pricePerNight: parseFloat(pricePerNight),
+                            roomType: roomType,
+                            maxOccupancy: parseInt(maxOccupancy) || 4,
+                            checkInDate: checkInDate,
+                            checkOutDate: checkOutDate,
+                            numberOfGuests: parseInt(numberOfGuests)
+                        };
+
+                        console.log('Storing room data:', selectedRoomData);
+                        sessionStorage.setItem('selectedRoomData', JSON.stringify(selectedRoomData));
+
+                        // Redirect to booking page
+                        window.location.href = '/booking';
+
                     } catch (error) {
                         console.error('Error in booking button click handler:', error);
                         alert('An error occurred while booking the room. Please try again.');
                     }
                 });
             });
+        }
+
+        function getDefaultCheckInDate() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            return tomorrow.toISOString().split('T')[0];
+        }
+
+        function getDefaultCheckOutDate() {
+            const dayAfterTomorrow = new Date();
+            dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+            return dayAfterTomorrow.toISOString().split('T')[0];
         }
 
         function initializeRoomSearch() {
@@ -280,28 +297,38 @@
         }
 
         function performSearch() {
-            const formData = new FormData(document.getElementById('roomSearchForm'));
-            const searchParams = new URLSearchParams();
+            try {
+                const formData = new FormData(document.getElementById('roomSearchForm'));
+                const searchParams = new URLSearchParams();
 
-            for (let [key, value] of formData.entries()) {
-                if (value) {
-                    searchParams.append(key, value);
+                for (let [key, value] of formData.entries()) {
+                    if (value) {
+                        searchParams.append(key, value);
+                    }
                 }
+
+                showLoading();
+
+                fetch(`/api/rooms/search?${searchParams.toString()}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        hideLoading();
+                        displaySearchResults(data);
+                    })
+                    .catch(error => {
+                        hideLoading();
+                        showAlert('Error searching rooms. Please try again.', 'error');
+                        console.error('Search error:', error);
+                    });
+            } catch (error) {
+                console.error('Error in performSearch:', error);
+                showAlert('Error performing search. Please refresh the page and try again.', 'error');
             }
-
-            showLoading();
-
-            fetch(`/api/rooms/search?${searchParams.toString()}`)
-                .then(response => response.json())
-                .then(data => {
-                    hideLoading();
-                    displaySearchResults(data);
-                })
-                .catch(error => {
-                    hideLoading();
-                    showAlert('Error searching rooms. Please try again.', 'error');
-                    console.error('Search error:', error);
-                });
         }
 
         function displaySearchResults(rooms) {
@@ -317,7 +344,7 @@
 
             resultsContainer.innerHTML = rooms.map(room => `
                 <div class="room-card fade-in">
-                    <img src="${room.imageUrl || '/images/room-default.svg'}" alt="${room.roomType}" class="room-image" onerror="this.src='/images/room-default.svg'">
+                    <img src="${room.imageUrl || '/images/room-default.jpg'}" alt="${room.roomType}" class="room-image" onerror="this.src='/images/room-default.jpg'">
                     <div class="room-info">
                         <h3 class="room-title">${room.roomType}</h3>
                         <p class="room-description">${room.description || ''}</p>
@@ -327,17 +354,18 @@
                             <p><strong>Max Occupancy:</strong> ${room.maxOccupancy} guests</p>
                         </div>
                         <div class="room-amenities">
-                            ${room.amenities ? JSON.parse(room.amenities).map(amenity =>
-                                `<span class="amenity-tag">${amenity}</span>`
-                            ).join('') : ''}
+                            <span class="amenity-tag">📶 WiFi</span>
+                            <span class="amenity-tag">❄️ AC</span>
+                            <span class="amenity-tag">📺 TV</span>
+                            <span class="amenity-tag">🛁 Private Bathroom</span>
                         </div>
                         <div class="room-price">LKR ${room.pricePerNight.toLocaleString('en-US', {minimumFractionDigits: 2})} / night</div>
                         <div class="mt-2">
-                            <button class="btn btn-primary book-room-btn" 
-                                    data-room-id="${room.roomId}" 
-                                    data-room-number="${room.roomNumber}" 
-                                    data-price="${room.pricePerNight}" 
-                                    data-room-type="${room.roomType}" 
+                            <button class="btn btn-primary dynamic-book-btn"
+                                    data-room-id="${room.roomId}"
+                                    data-room-number="${room.roomNumber}"
+                                    data-price="${room.pricePerNight}"
+                                    data-room-type="${room.roomType}"
                                     data-max-occupancy="${room.maxOccupancy}">
                                 📅 Book This Room
                             </button>
@@ -345,35 +373,59 @@
                     </div>
                 </div>
             `).join('');
-            
+
             // Re-attach event listeners for dynamically generated buttons
-            document.querySelectorAll('#searchResults .book-room-btn').forEach(button => {
+            attachDynamicButtonListeners();
+            resultsContainer.style.display = 'grid';
+        }
+
+        function attachDynamicButtonListeners() {
+            document.querySelectorAll('.dynamic-book-btn').forEach(button => {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
-                    
+
                     try {
                         const roomId = this.dataset.roomId;
                         const roomNumber = this.dataset.roomNumber;
                         const pricePerNight = this.dataset.price;
                         const roomType = this.dataset.roomType;
                         const maxOccupancy = this.dataset.maxOccupancy;
-                        
+
                         if (!roomId) {
                             console.error('Missing room ID in dynamically generated button');
                             alert('Error: Room ID not found. Please try again.');
                             return;
                         }
-                        
-                        window.selectRoom(roomId, roomNumber, pricePerNight, roomType, maxOccupancy);
-                        
+
+                        // Get current search criteria
+                        const checkInDate = document.getElementById('checkInDate')?.value || getDefaultCheckInDate();
+                        const checkOutDate = document.getElementById('checkOutDate')?.value || getDefaultCheckOutDate();
+                        const numberOfGuests = document.getElementById('guests')?.value || 2;
+
+                        // Store selected room data
+                        const selectedRoomData = {
+                            roomId: parseInt(roomId),
+                            roomNumber: roomNumber,
+                            pricePerNight: parseFloat(pricePerNight),
+                            roomType: roomType,
+                            maxOccupancy: parseInt(maxOccupancy),
+                            checkInDate: checkInDate,
+                            checkOutDate: checkOutDate,
+                            numberOfGuests: parseInt(numberOfGuests)
+                        };
+
+                        console.log('Storing dynamic room data:', selectedRoomData);
+                        sessionStorage.setItem('selectedRoomData', JSON.stringify(selectedRoomData));
+
+                        // Redirect to booking page
+                        window.location.href = '/booking';
+
                     } catch (error) {
                         console.error('Error in dynamic booking button click handler:', error);
                         alert('An error occurred while booking the room. Please try again.');
                     }
                 });
             });
-
-            resultsContainer.style.display = 'grid';
         }
 
         function showLoading() {
@@ -389,12 +441,8 @@
         }
 
         function showAlert(message, type) {
-            // Use main.js showAlert function if available
-            if (typeof window.showAlert === 'function') {
-                window.showAlert(message, type);
-            } else {
-                alert(message);
-            }
+            // Simple alert for now
+            alert(message);
         }
     </script>
 </th:block>
@@ -428,85 +476,5 @@
         }
     </style>
 </th:block>
-
-<!-- Fallback inline script to ensure booking buttons work -->
-<script>
-console.log('Inline script loading for booking buttons...');
-
-// Global fallback selectRoom function
-window.selectRoomFallback = function(roomId, roomNumber, pricePerNight, roomType, maxOccupancy) {
-    console.log('Inline selectRoom called:', {roomId, roomNumber, pricePerNight, roomType, maxOccupancy});
-    
-    try {
-        // Get form values with fallbacks
-        const checkInDate = document.getElementById('checkInDate')?.value || (() => {
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            return tomorrow.toISOString().split('T')[0];
-        })();
-        
-        const checkOutDate = document.getElementById('checkOutDate')?.value || (() => {
-            const dayAfterTomorrow = new Date();
-            dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
-            return dayAfterTomorrow.toISOString().split('T')[0];
-        })();
-        
-        const numberOfGuests = document.getElementById('guests')?.value || 2;
-        
-        const selectedRoomData = {
-            roomId: parseInt(roomId),
-            roomNumber: roomNumber,
-            pricePerNight: parseFloat(pricePerNight),
-            roomType: roomType,
-            maxOccupancy: parseInt(maxOccupancy) || 4,
-            checkInDate: checkInDate,
-            checkOutDate: checkOutDate,
-            numberOfGuests: parseInt(numberOfGuests)
-        };
-        
-        console.log('Storing room data in sessionStorage:', selectedRoomData);
-        sessionStorage.setItem('selectedRoomData', JSON.stringify(selectedRoomData));
-        
-        console.log('Redirecting to booking page...');
-        window.location.href = '/booking';
-        
-    } catch (error) {
-        console.error('Error in selectRoom:', error);
-        alert('Error selecting room. Please try again.');
-    }
-};
-
-// Set up as main selectRoom if not available
-if (typeof window.selectRoom !== 'function') {
-    window.selectRoom = window.selectRoomFallback;
-    console.log('Set up fallback selectRoom function');
-}
-
-// Also add event listeners to buttons as additional backup
-setTimeout(() => {
-    const buttons = document.querySelectorAll('.book-room-btn');
-    console.log('Setting up backup event listeners for', buttons.length, 'buttons');
-    
-    buttons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('Backup event listener triggered');
-            
-            const roomId = this.dataset.roomId || this.getAttribute('data-room-id');
-            const roomNumber = this.dataset.roomNumber || this.getAttribute('data-room-number');
-            const price = this.dataset.price || this.getAttribute('data-price');
-            const roomType = this.dataset.roomType || this.getAttribute('data-room-type');
-            const maxOccupancy = this.dataset.maxOccupancy || this.getAttribute('data-max-occupancy');
-            
-            if (roomId) {
-                window.selectRoomFallback(roomId, roomNumber, price, roomType, maxOccupancy);
-            } else {
-                console.error('No room data found on button');
-            }
-        });
-    });
-}, 1000);
-</script>
-
 </body>
 </html>

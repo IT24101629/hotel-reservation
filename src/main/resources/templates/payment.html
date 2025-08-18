@@ -307,25 +307,67 @@
             let selectedPaymentMethod = 'PAYHERE';
             
             document.addEventListener('DOMContentLoaded', function() {
+                // Extra safety check - only run payment JavaScript if we're actually on payment page
+                if (window.location.pathname !== '/payment') {
+                    console.log('Payment JavaScript attempted to run on wrong page:', window.location.pathname);
+                    return;
+                }
+                
+                // Check if we have any indication that we should be on this page
+                const urlParams = new URLSearchParams(window.location.search);
+                const bookingId = urlParams.get('bookingId');
+                const pendingBooking = JSON.parse(sessionStorage.getItem('pendingBooking') || '{}');
+                
+                if (!bookingId && !pendingBooking.bookingId) {
+                    console.log('Payment page accessed without valid booking data');
+                    
+                    // Check for redirect loop
+                    const redirectCount = sessionStorage.getItem('redirectCount') || '0';
+                    const lastPage = sessionStorage.getItem('lastPage');
+                    
+                    if (lastPage === 'rooms' && parseInt(redirectCount) > 3) {
+                        console.log('Detected redirect loop from payment page, breaking');
+                        sessionStorage.clear();
+                        alert('There seems to be a navigation issue. Please refresh the page and try again.');
+                        return;
+                    }
+                    
+                    sessionStorage.setItem('lastPage', 'payment');
+                    sessionStorage.setItem('redirectCount', String(parseInt(redirectCount) + 1));
+                    
+                    console.log('Redirecting to rooms page');
+                    window.location.replace('/rooms');
+                    return;
+                }
+                
                 loadBookingData();
                 initializePaymentMethods();
             });
             
             function loadBookingData() {
+                console.log('Payment page: loadBookingData called');
+                console.log('Payment page: Current URL:', window.location.href);
+                console.log('Payment page: Referrer:', document.referrer);
+                
                 // Get booking ID from URL or session storage
                 const urlParams = new URLSearchParams(window.location.search);
                 const bookingId = urlParams.get('bookingId');
+                
+                console.log('Payment page: bookingId from URL:', bookingId);
                 
                 if (bookingId) {
                     fetchBookingData(bookingId);
                 } else {
                     // Try to get from session storage
                     const pendingBooking = JSON.parse(sessionStorage.getItem('pendingBooking') || '{}');
+                    console.log('Payment page: pendingBooking from session:', pendingBooking);
+                    
                     if (pendingBooking.bookingId) {
                         fetchBookingData(pendingBooking.bookingId);
                     } else {
-                        showAlert('No booking found. Please start a new booking.', 'error');
-                        setTimeout(() => window.location.href = '/rooms', 3000);
+                        console.log('Payment page: No booking found in loadBookingData');
+                        // Don't show alert or redirect here as we already handled it above
+                        console.log('This should not happen if the pre-checks worked correctly');
                     }
                 }
             }
