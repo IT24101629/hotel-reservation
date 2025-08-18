@@ -33,22 +33,37 @@ public class PageController {
         return "index";
     }
 
+    // Home aliases
+    @GetMapping("/index")
+    public String index(Model model) {
+        return home(model);
+    }
+
+    @GetMapping("/home")
+    public String homeAlias(Model model) {
+        return home(model);
+    }
+
     // Dashboard - authenticated users only
     @GetMapping("/dashboard")
     public String dashboard(Model model, Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
             String email = authentication.getName();
             User user = userService.findByEmail(email);
-            
+
             if (user != null) {
                 model.addAttribute("user", user);
-                
-                // Add user-specific data
-                if ("CUSTOMER".equals(user.getRole())) {
+
+                // Add user-specific data based on role
+                if (UserRole.CUSTOMER.equals(user.getRole())) {
                     // Customer dashboard data
-                    model.addAttribute("userBookings", bookingService.getBookingsByCustomer(user.getUserId()));
-                    model.addAttribute("totalBookings", bookingService.getBookingsByCustomer(user.getUserId()).size());
-                } else if ("ADMIN".equals(user.getRole())) {
+                    try {
+                        model.addAttribute("recentBookings", bookingService.getBookingsByCustomer(user.getUserId()));
+                    } catch (Exception e) {
+                        // Handle gracefully if no customer profile exists yet
+                        model.addAttribute("recentBookings", java.util.Collections.emptyList());
+                    }
+                } else if (UserRole.ADMIN.equals(user.getRole())) {
                     // Admin dashboard data
                     model.addAttribute("allBookings", bookingService.getAllBookings());
                     model.addAttribute("todaysCheckIns", bookingService.getTodaysCheckIns());
@@ -66,24 +81,24 @@ public class PageController {
                         @RequestParam(value = "checkOut", required = false) String checkOut,
                         @RequestParam(value = "guests", required = false) Integer guests,
                         @RequestParam(value = "roomType", required = false) String roomType) {
-        
+
         // Add search parameters to model
         model.addAttribute("checkIn", checkIn);
         model.addAttribute("checkOut", checkOut);
         model.addAttribute("guests", guests);
         model.addAttribute("roomType", roomType);
-        
+
         // Get available rooms based on search criteria
         if (checkIn != null && checkOut != null) {
-            model.addAttribute("availableRooms", 
-                roomService.findAvailableRoomsForDates(checkIn, checkOut, guests, roomType));
+            model.addAttribute("availableRooms",
+                    roomService.findAvailableRoomsForDates(checkIn, checkOut, guests, roomType));
         } else {
             model.addAttribute("availableRooms", roomService.getAllAvailableRooms());
         }
-        
+
         // Get room types for filter
         model.addAttribute("roomTypes", roomService.getAllRoomTypes());
-        
+
         return "rooms";
     }
 
@@ -94,29 +109,29 @@ public class PageController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return "redirect:/auth/login?returnUrl=/booking";
         }
-        
+
         String email = authentication.getName();
         User user = userService.findByEmail(email);
         model.addAttribute("user", user);
-        
+
         return "booking";
     }
 
     // Payment page
     @GetMapping("/payment")
-    public String payment(Model model, 
+    public String payment(Model model,
                           @RequestParam(value = "bookingId", required = false) Long bookingId,
                           Authentication authentication) {
-        
+
         // Check if user is logged in
         if (authentication == null || !authentication.isAuthenticated()) {
             return "redirect:/auth/login?returnUrl=/payment";
         }
-        
+
         if (bookingId != null) {
             model.addAttribute("bookingId", bookingId);
         }
-        
+
         return "payment";
     }
 
@@ -125,12 +140,12 @@ public class PageController {
     public String bookingConfirmation(Model model,
                                       @RequestParam("bookingId") Long bookingId,
                                       Authentication authentication) {
-        
+
         // Check if user is logged in
         if (authentication == null || !authentication.isAuthenticated()) {
             return "redirect:/auth/login";
         }
-        
+
         try {
             model.addAttribute("booking", bookingService.getBookingById(bookingId));
             return "booking-confirmation";
@@ -144,7 +159,7 @@ public class PageController {
     @GetMapping("/payment/success")
     public String paymentSuccess(Model model,
                                  @RequestParam(value = "order_id", required = false) String orderId) {
-        
+
         if (orderId != null) {
             try {
                 model.addAttribute("booking", bookingService.getBookingByReference(orderId));
@@ -152,7 +167,7 @@ public class PageController {
                 model.addAttribute("errorMessage", "Booking not found");
             }
         }
-        
+
         return "payment-success";
     }
 
@@ -188,18 +203,8 @@ public class PageController {
     }
 
     // Error pages
-    @GetMapping("/error/403")
-    public String error403() {
-        return "error/403";
-    }
-
-    @GetMapping("/error/404")
-    public String error404() {
-        return "error/404";
-    }
-
-    @GetMapping("/error/500")
-    public String error500() {
-        return "error/500";
+    @GetMapping("/error")
+    public String error() {
+        return "error";
     }
 }

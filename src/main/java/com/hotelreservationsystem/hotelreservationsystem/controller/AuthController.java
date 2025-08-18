@@ -41,7 +41,7 @@ public class AuthController {
                                BindingResult result,
                                Model model,
                                RedirectAttributes redirectAttributes) {
-        
+
         // Check for validation errors
         if (result.hasErrors()) {
             return "register";
@@ -70,8 +70,8 @@ public class AuthController {
         try {
             // Register the user
             User user = userService.registerUser(registrationDto);
-            redirectAttributes.addFlashAttribute("successMessage", 
-                "Registration successful! You can now log in with your credentials.");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Registration successful! You can now log in with your credentials.");
             return "redirect:/auth/login";
         } catch (Exception e) {
             model.addAttribute("errorMessage", "Registration failed: " + e.getMessage());
@@ -84,15 +84,15 @@ public class AuthController {
     public String showLoginForm(@RequestParam(value = "error", required = false) String error,
                                 @RequestParam(value = "logout", required = false) String logout,
                                 Model model) {
-        
+
         if (error != null) {
             model.addAttribute("errorMessage", "Invalid username or password");
         }
-        
+
         if (logout != null) {
             model.addAttribute("successMessage", "You have been logged out successfully");
         }
-        
+
         return "login";
     }
 
@@ -100,7 +100,7 @@ public class AuthController {
     @GetMapping("/login/success")
     public String loginSuccess(Authentication authentication) {
         String role = authentication.getAuthorities().iterator().next().getAuthority();
-        
+
         if ("ROLE_ADMIN".equals(role)) {
             return "redirect:/admin/dashboard";
         } else {
@@ -112,7 +112,7 @@ public class AuthController {
     @PostMapping("/logout")
     public String logout(HttpServletRequest request, HttpServletResponse response,
                          RedirectAttributes redirectAttributes) {
-        
+
         SecurityContextHolder.clearContext();
         redirectAttributes.addFlashAttribute("successMessage", "You have been logged out successfully");
         return "redirect:/auth/login";
@@ -131,8 +131,8 @@ public class AuthController {
                                         RedirectAttributes redirectAttributes) {
         try {
             userService.processForgotPassword(email);
-            redirectAttributes.addFlashAttribute("successMessage", 
-                "Password reset instructions have been sent to your email");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Password reset instructions have been sent to your email");
             return "redirect:/auth/login";
         } catch (Exception e) {
             model.addAttribute("errorMessage", "Error processing password reset: " + e.getMessage());
@@ -148,7 +148,7 @@ public class AuthController {
             model.addAttribute("errorMessage", "Invalid or expired password reset token");
             return "login";
         }
-        
+
         model.addAttribute("token", token);
         return "reset-password";
     }
@@ -160,7 +160,7 @@ public class AuthController {
                                        @RequestParam("confirmPassword") String confirmPassword,
                                        Model model,
                                        RedirectAttributes redirectAttributes) {
-        
+
         // Validate passwords match
         if (!newPassword.equals(confirmPassword)) {
             model.addAttribute("errorMessage", "Passwords do not match");
@@ -170,8 +170,8 @@ public class AuthController {
 
         try {
             userService.resetPassword(token, newPassword);
-            redirectAttributes.addFlashAttribute("successMessage", 
-                "Password reset successful! You can now log in with your new password.");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Password reset successful! You can now log in with your new password.");
             return "redirect:/auth/login";
         } catch (Exception e) {
             model.addAttribute("errorMessage", "Error resetting password: " + e.getMessage());

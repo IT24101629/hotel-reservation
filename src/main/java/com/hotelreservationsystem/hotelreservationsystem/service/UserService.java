@@ -63,6 +63,7 @@ public class UserService implements UserDetailsService {
         user.setLastName(registrationDto.getLastName());
         user.setRole(UserRole.CUSTOMER);
         user.setIsActive(true);
+        user.setEmailVerified(true); // Auto-verify for now
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 
@@ -134,16 +135,64 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
+    // Create some demo users if they don't exist
+    @Transactional
+    public void createDemoUsersIfNotExist() {
+        // Create admin user if not exists
+        if (!existsByEmail("admin@hotel.com")) {
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setEmail("admin@hotel.com");
+            admin.setPasswordHash(passwordEncoder.encode("admin123"));
+            admin.setFirstName("Admin");
+            admin.setLastName("User");
+            admin.setRole(UserRole.ADMIN);
+            admin.setIsActive(true);
+            admin.setEmailVerified(true);
+            admin.setCreatedAt(LocalDateTime.now());
+            admin.setUpdatedAt(LocalDateTime.now());
+            userRepository.save(admin);
+        }
+
+        // Create demo customer if not exists
+        if (!existsByEmail("customer@hotel.com")) {
+            User customer = new User();
+            customer.setUsername("customer1");
+            customer.setEmail("customer@hotel.com");
+            customer.setPasswordHash(passwordEncoder.encode("customer123"));
+            customer.setFirstName("John");
+            customer.setLastName("Doe");
+            customer.setRole(UserRole.CUSTOMER);
+            customer.setIsActive(true);
+            customer.setEmailVerified(true);
+            customer.setCreatedAt(LocalDateTime.now());
+            customer.setUpdatedAt(LocalDateTime.now());
+            customer = userRepository.save(customer);
+
+            // Create customer profile
+            Customer customerProfile = new Customer();
+            customerProfile.setUser(customer);
+            customerProfile.setPhoneNumber("+94771234567");
+            customerProfile.setAddress("123 Main Street, Colombo");
+            customerProfile.setCity("Colombo");
+            customerProfile.setCountry("Sri Lanka");
+            customerProfile.setPostalCode("10100");
+            customerProfile.setCreatedAt(LocalDateTime.now());
+            customerProfile.setUpdatedAt(LocalDateTime.now());
+            customerRepository.save(customerProfile);
+        }
+    }
+
     // Placeholder methods for password reset functionality
     public void processForgotPassword(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-        
+
         // In a real implementation, you would:
         // 1. Generate a unique reset token
         // 2. Store it with expiration time
         // 3. Send email with reset link
-        
+
         throw new RuntimeException("Password reset functionality not implemented yet");
     }
 
@@ -158,7 +207,7 @@ public class UserService implements UserDetailsService {
         // 2. Find user by token
         // 3. Update password
         // 4. Invalidate token
-        
+
         throw new RuntimeException("Password reset functionality not implemented yet");
     }
 }

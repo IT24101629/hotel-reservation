@@ -24,7 +24,6 @@ public class SecurityConfig {
     @Autowired
     private UserService userService;
 
-
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
@@ -50,11 +49,11 @@ public class SecurityConfig {
             protected String determineTargetUrl(jakarta.servlet.http.HttpServletRequest request,
                                                 jakarta.servlet.http.HttpServletResponse response,
                                                 org.springframework.security.core.Authentication authentication) {
-                
+
                 String role = authentication.getAuthorities().iterator().next().getAuthority();
-                
+
                 if ("ROLE_ADMIN".equals(role)) {
-                    return "/admin/dashboard";
+                    return "/dashboard";
                 } else {
                     return "/dashboard";
                 }
@@ -65,51 +64,53 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(authz -> authz
-                // Public pages
-                .requestMatchers("/", "/home", "/index").permitAll()
-                .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                
-                // API endpoints - payment notification should be public
-                .requestMatchers("/api/payment/payhere/notify").permitAll()
-                
-                // Protected pages
-                .requestMatchers("/dashboard/**").hasAnyRole("USER", "CUSTOMER", "ADMIN")
-                .requestMatchers("/booking/**").hasAnyRole("USER", "CUSTOMER", "ADMIN")
-                .requestMatchers("/payment/**").hasAnyRole("USER", "CUSTOMER", "ADMIN")
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                
-                // API endpoints
-                .requestMatchers("/api/bookings/**").hasAnyRole("USER", "CUSTOMER", "ADMIN")
-                .requestMatchers("/api/payment/**").hasAnyRole("USER", "CUSTOMER", "ADMIN")
-                
-                // All other requests need authentication
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/auth/login")
-                .loginProcessingUrl("/auth/login")
-                .successHandler(customAuthenticationSuccessHandler())
-                .failureUrl("/auth/login?error=true")
-                .usernameParameter("email")
-                .passwordParameter("password")
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/auth/logout")
-                .logoutSuccessUrl("/auth/login?logout=true")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
-                .permitAll()
-            )
-            .sessionManagement(session -> session
-                .maximumSessions(1)
-                .maxSessionsPreventsLogin(false)
-            )
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/payment/payhere/notify")
-            );
+                .authorizeHttpRequests(authz -> authz
+                        // Public pages
+                        .requestMatchers("/", "/index", "/home").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                        .requestMatchers("/rooms").permitAll()
+                        .requestMatchers("/error").permitAll()
+
+                        // API endpoints - payment notification should be public
+                        .requestMatchers("/api/payment/payhere/notify").permitAll()
+
+                        // Protected pages - require authentication
+                        .requestMatchers("/dashboard/**").authenticated()
+                        .requestMatchers("/booking/**").authenticated()
+                        .requestMatchers("/payment/**").authenticated()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                        // API endpoints
+                        .requestMatchers("/api/bookings/**").authenticated()
+                        .requestMatchers("/api/payment/**").authenticated()
+
+                        // All other requests need authentication
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .loginPage("/auth/login")
+                        .loginProcessingUrl("/auth/login")
+                        .successHandler(customAuthenticationSuccessHandler())
+                        .failureUrl("/auth/login?error=true")
+                        .usernameParameter("username")
+                        .passwordParameter("password")
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout")
+                        .logoutSuccessUrl("/auth/login?logout=true")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                )
+                .sessionManagement(session -> session
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
+                )
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/payment/payhere/notify")
+                );
 
         http.authenticationProvider(authenticationProvider());
 
