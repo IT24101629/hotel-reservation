@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
+<head>
+    <title>Payment Cancelled - Hotel Reservation System</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="container">
+        <div class="text-center mt-4 mb-4">
+            <div class="cancel-icon">❌</div>
+            <h1 class="text-warning">Payment Cancelled</h1>
+            <p class="lead">Your payment was cancelled. No charges have been made.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-body text-center">
+                <h3>What happened?</h3>
+                <p>You chose to cancel the payment process before it was completed.</p>
+                <p th:if="${message}" th:text="${message}">Payment was cancelled.</p>
+                
+                <div class="mt-4">
+                    <h4>What would you like to do next?</h4>
+                    <div class="mt-3">
+                        <a href="/payment" class="btn btn-primary">Try Payment Again</a>
+                        <a href="/rooms" class="btn btn-secondary">Browse Other Rooms</a>
+                        <a href="/dashboard" class="btn btn-outline-primary">Go to Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <p class="text-muted">If you're experiencing issues with payment, please <a href="mailto:support@hotel.com">contact our support team</a>.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .cancel-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+</style>
+</body>
+</html>
