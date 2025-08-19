@@ -218,6 +218,11 @@ public class PageController {
                 System.err.println("Payment: No bookingId provided in request");
             }
 
+            // Add base URL for PayHere endpoints
+            String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+            model.addAttribute("baseUrl", baseUrl);
+            System.err.println("Payment: Added baseUrl to model: " + baseUrl);
+
             System.err.println("Payment: Returning payment template");
             return "payment";
             
