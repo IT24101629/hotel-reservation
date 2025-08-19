@@ -20,16 +20,40 @@ public class PaymentController {
         Map<String, Object> response = new HashMap<>();
         
         try {
+            System.out.println("PaymentController: Received hash generation request: " + request);
+            
             String orderId = (String) request.get("orderId");
             String amount = (String) request.get("amount");
             String currency = (String) request.get("currency");
             
+            System.out.println("PaymentController: Hash generation params - orderId: " + orderId + ", amount: " + amount + ", currency: " + currency);
+            
+            if (orderId == null || orderId.trim().isEmpty()) {
+                throw new RuntimeException("Order ID is required");
+            }
+            
+            if (amount == null || amount.trim().isEmpty()) {
+                throw new RuntimeException("Amount is required");
+            }
+            
+            if (currency == null || currency.trim().isEmpty()) {
+                currency = "LKR"; // Default currency
+            }
+            
             String hash = paymentService.generatePayHereHash(orderId, amount, currency);
+            System.out.println("PaymentController: Generated hash successfully for order: " + orderId);
+            
             response.put("success", true);
             response.put("hash", hash);
+            response.put("orderId", orderId);
+            response.put("amount", amount);
+            response.put("currency", currency);
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            System.err.println("PaymentController: Error generating hash: " + e.getMessage());
+            e.printStackTrace();
+            
             response.put("success", false);
             response.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(response);

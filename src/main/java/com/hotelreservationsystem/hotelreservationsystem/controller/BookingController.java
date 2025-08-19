@@ -40,31 +40,49 @@ public class BookingController {
         Map<String, Object> response = new HashMap<>();
         
         try {
+            System.err.println("=== BOOKING CREATION REQUEST ===");
+            System.err.println("BookingController: Received booking request: " + bookingRequest);
+            
             // Get the authenticated user
             String username = authentication.getName();
+            System.err.println("BookingController: Authenticated user: " + username);
+            
             User user = userService.findByEmail(username);
             
             if (user == null) {
+                System.err.println("BookingController: User not found for email: " + username);
                 response.put("success", false);
                 response.put("error", "User not found");
                 return ResponseEntity.badRequest().body(response);
             }
             
+            System.err.println("BookingController: User found: " + user.getFirstName() + " " + user.getLastName());
+            
             // Get or create customer for this user
             Customer customer = customerService.getOrCreateCustomerProfile(user);
+            System.err.println("BookingController: Customer profile: " + customer.getCustomerId());
             
             // Set the customer ID from authenticated user
             bookingRequest.setCustomerId(customer.getCustomerId());
             
+            System.err.println("BookingController: Creating booking with request: " + bookingRequest);
             BookingResponseDTO booking = bookingService.createBooking(bookingRequest);
+            
+            System.err.println("BookingController: Booking created successfully: " + booking.getBookingReference());
+            
             response.put("success", true);
             response.put("message", "Booking created successfully");
             response.put("bookingId", booking.getBookingId());
             response.put("bookingReference", booking.getBookingReference());
             response.put("booking", booking);
             
+            System.err.println("BookingController: Returning success response");
             return ResponseEntity.ok(response);
+            
         } catch (Exception e) {
+            System.err.println("BookingController: Error creating booking: " + e.getMessage());
+            e.printStackTrace();
+            
             response.put("success", false);
             response.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(response);

@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 public class BookingRequestDTO {
     
-    @NotNull(message = "Customer ID is required")
+    // Customer ID is set automatically by the controller from authenticated user
     private Long customerId;
     
     @NotNull(message = "Room ID is required")

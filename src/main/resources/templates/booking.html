@@ -456,9 +456,16 @@
                     const termsAccepted = agreeToTerms.checked;
                     const detailsConfirmed = confirmDetails.checked;
                     
+                    console.log('updateSubmitButton called:', {
+                        roomSelected: !!roomSelected,
+                        termsAccepted,
+                        detailsConfirmed
+                    });
+                    
                     if (roomSelected && termsAccepted && detailsConfirmed) {
                         submitBtn.disabled = false;
                         submitBtn.textContent = '💳 Proceed to Payment';
+                        console.log('Submit button enabled');
                     } else {
                         submitBtn.disabled = true;
                         if (!roomSelected) {
@@ -466,6 +473,7 @@
                         } else if (!termsAccepted || !detailsConfirmed) {
                             submitBtn.textContent = '✅ Please Accept Terms & Confirm Details';
                         }
+                        console.log('Submit button disabled');
                     }
                 }
                 
@@ -480,15 +488,21 @@
                 const form = document.getElementById('bookingForm');
                 
                 form.addEventListener('submit', function(e) {
+                    console.log('Form submit event triggered');
                     e.preventDefault();
                     
+                    console.log('Form validation starting...');
                     if (validateBookingForm()) {
+                        console.log('Form validation passed, calling submitBooking');
                         submitBooking();
+                    } else {
+                        console.log('Form validation failed');
                     }
                 });
             }
             
             function validateBookingForm() {
+                console.log('validateBookingForm called');
                 let isValid = true;
                 
                 // Validate required fields
@@ -497,9 +511,20 @@
                     'guestFirstName', 'guestLastName', 'guestEmail', 'guestPhone'
                 ];
                 
+                console.log('Validating required fields...');
                 requiredFields.forEach(fieldId => {
                     const field = document.getElementById(fieldId);
-                    if (!field.value.trim()) {
+                    if (!field) {
+                        console.error(`Field not found: ${fieldId}`);
+                        isValid = false;
+                        return;
+                    }
+                    
+                    const value = field.value ? field.value.trim() : '';
+                    console.log(`Field ${fieldId}: "${value}" (${value ? 'valid' : 'INVALID - empty'})`);
+                    
+                    if (!value) {
+                        console.error(`Validation failed for field: ${fieldId}`);
                         showFieldError(field, 'This field is required');
                         isValid = false;
                     } else {
@@ -508,37 +533,65 @@
                 });
                 
                 // Validate dates
-                const checkIn = new Date(document.getElementById('checkInDate').value);
-                const checkOut = new Date(document.getElementById('checkOutDate').value);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
+                console.log('Validating dates...');
+                const checkInField = document.getElementById('checkInDate');
+                const checkOutField = document.getElementById('checkOutDate');
                 
-                if (checkIn < today) {
-                    showFieldError(document.getElementById('checkInDate'), 'Check-in date cannot be in the past');
+                if (!checkInField || !checkOutField) {
+                    console.error('Date fields not found');
                     isValid = false;
-                }
-                
-                if (checkOut <= checkIn) {
-                    showFieldError(document.getElementById('checkOutDate'), 'Check-out date must be after check-in date');
-                    isValid = false;
+                } else {
+                    const checkIn = new Date(checkInField.value);
+                    const checkOut = new Date(checkOutField.value);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    console.log(`Check-in date: ${checkInField.value} (${checkIn})`);
+                    console.log(`Check-out date: ${checkOutField.value} (${checkOut})`);
+                    console.log(`Today: ${today}`);
+                    
+                    if (checkIn < today) {
+                        console.error('Check-in date validation failed: date is in the past');
+                        showFieldError(checkInField, 'Check-in date cannot be in the past');
+                        isValid = false;
+                    }
+                    
+                    if (checkOut <= checkIn) {
+                        console.error('Check-out date validation failed: not after check-in');
+                        showFieldError(checkOutField, 'Check-out date must be after check-in date');
+                        isValid = false;
+                    }
                 }
                 
                 // Validate email
-                const email = document.getElementById('guestEmail').value;
-                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (email && !emailPattern.test(email)) {
-                    showFieldError(document.getElementById('guestEmail'), 'Please enter a valid email address');
-                    isValid = false;
+                console.log('Validating email...');
+                const emailField = document.getElementById('guestEmail');
+                if (emailField) {
+                    const email = emailField.value;
+                    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    console.log(`Email: "${email}"`);
+                    if (email && !emailPattern.test(email)) {
+                        console.error('Email validation failed');
+                        showFieldError(emailField, 'Please enter a valid email address');
+                        isValid = false;
+                    }
                 }
                 
                 // Validate phone
-                const phone = document.getElementById('guestPhone').value;
-                const phonePattern = /^[+]?[0-9]{10,15}$/;
-                if (phone && !phonePattern.test(phone.replace(/\s/g, ''))) {
-                    showFieldError(document.getElementById('guestPhone'), 'Please enter a valid phone number');
-                    isValid = false;
+                console.log('Validating phone...');
+                const phoneField = document.getElementById('guestPhone');
+                if (phoneField) {
+                    const phone = phoneField.value;
+                    const phonePattern = /^[+]?[0-9]{10,15}$/;
+                    console.log(`Phone: "${phone}"`);
+                    if (phone && !phonePattern.test(phone.replace(/\s/g, ''))) {
+                        console.error('Phone validation failed');
+                        showFieldError(phoneField, 'Please enter a valid phone number');
+                        isValid = false;
+                    }
                 }
                 
+                console.log(`Form validation complete. Valid: ${isValid}`);
                 return isValid;
             }
             
@@ -604,32 +657,68 @@
             }
             
             function submitBooking() {
-                const formData = new FormData(document.getElementById('bookingForm'));
-                const bookingData = {};
+                console.log('submitBooking called');
                 
-                for (let [key, value] of formData.entries()) {
-                    bookingData[key] = value;
+                // Create booking data with only the required fields for the API
+                const bookingData = {
+                    roomId: parseInt(document.getElementById('roomId').value),
+                    checkInDate: document.getElementById('checkInDate').value,
+                    checkOutDate: document.getElementById('checkOutDate').value,
+                    numberOfGuests: parseInt(document.getElementById('numberOfGuests').value),
+                    specialRequests: document.getElementById('specialRequests').value || '',
+                    customerNotes: document.getElementById('customerNotes').value || ''
+                };
+                
+                console.log('Booking data object:', bookingData);
+                
+                // Validate required fields
+                if (!bookingData.roomId) {
+                    showAlert('Please select a room', 'error');
+                    return;
                 }
                 
+                if (!bookingData.checkInDate || !bookingData.checkOutDate) {
+                    showAlert('Please select check-in and check-out dates', 'error');
+                    return;
+                }
+                
+                if (!bookingData.numberOfGuests) {
+                    showAlert('Please select number of guests', 'error');
+                    return;
+                }
+                
+                console.log('All validations passed, making API call');
                 showLoading('Creating your booking...');
+                
+                const csrfToken = document.querySelector('input[name="_csrf"]').value;
+                console.log('CSRF token:', csrfToken);
                 
                 fetch('/api/bookings/create', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]').value
+                        'X-CSRF-TOKEN': csrfToken
                     },
                     body: JSON.stringify(bookingData)
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('API response status:', response.status);
+                    console.log('API response headers:', response.headers);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('API response data:', data);
                     hideLoading();
+                    
                     if (data.success && data.bookingId) {
+                        console.log('Booking created successfully:', data.bookingReference);
                         // Store booking data for payment
                         sessionStorage.setItem('pendingBooking', JSON.stringify(data));
                         // Redirect to payment
+                        console.log('Redirecting to payment page with bookingId:', data.bookingId);
                         window.location.href = '/payment?bookingId=' + data.bookingId;
                     } else {
+                        console.error('Booking creation failed:', data.error);
                         showAlert(data.error || 'Error creating booking. Please try again.', 'error');
                     }
                 })

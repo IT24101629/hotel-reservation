@@ -29,7 +29,7 @@ public class PaymentService {
     @Value("${payhere.merchant.id:1221688}")
     private String payhereProduction;
 
-    @Value("${payhere.merchant.secret:MzE5NzAyMjU2MTMyODI1MTU0NDIxNzM0Mjc5OTU4MzQ4MjgzMTA1}")
+    @Value("${payhere.merchant.secret:NDEwMjkxMjMxNTMxODkxNzQzNjMyNTI5MjgxMDkzMzgwMjY4MjY0MQ==}")
     private String payhereMerchantSecret;
 
     public String generatePayHereHash(String orderId, String amount, String currency) {

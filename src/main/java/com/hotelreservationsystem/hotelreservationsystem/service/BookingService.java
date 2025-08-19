@@ -77,6 +77,10 @@ public class BookingService {
         booking.setCustomerNotes(request.getCustomerNotes());
 
         calculateBookingDetails(booking);
+        
+        // Set initial booking and payment status
+        booking.setBookingStatus(BookingStatus.PENDING_PAYMENT);
+        booking.setPaymentStatus(PaymentStatus.PENDING);
 
         booking = bookingRepository.save(booking);
 
@@ -119,6 +123,10 @@ public class BookingService {
         booking.setCustomerNotes(request.getCustomerNotes());
 
         calculateBookingDetails(booking);
+        
+        // Set initial booking and payment status
+        booking.setBookingStatus(BookingStatus.PENDING_PAYMENT);
+        booking.setPaymentStatus(PaymentStatus.PENDING);
 
         booking = bookingRepository.save(booking);
 
