@@ -86,9 +86,9 @@
                                         
                                         <!-- PayHere Required Fields -->
                                         <input type="hidden" id="merchant_id" name="merchant_id" value="1221688">
-                                        <input type="hidden" id="return_url" name="return_url" value="http://localhost:8080/payment/success">
-                                        <input type="hidden" id="cancel_url" name="cancel_url" value="http://localhost:8080/payment/cancel">
-                                        <input type="hidden" id="notify_url" name="notify_url" value="http://localhost:8080/api/payment/payhere/notify">
+                                        <input type="hidden" id="return_url" name="return_url" th:value="${#httpServletRequest.scheme + '://' + #httpServletRequest.serverName + ':' + #httpServletRequest.serverPort + '/payment/success'}">
+                                        <input type="hidden" id="cancel_url" name="cancel_url" th:value="${#httpServletRequest.scheme + '://' + #httpServletRequest.serverName + ':' + #httpServletRequest.serverPort + '/payment/cancel'}">
+                                        <input type="hidden" id="notify_url" name="notify_url" th:value="${#httpServletRequest.scheme + '://' + #httpServletRequest.serverName + ':' + #httpServletRequest.serverPort + '/api/payment/payhere/notify'}">
                                         
                                         <!-- Order Details -->
                                         <input type="hidden" id="order_id" name="order_id">

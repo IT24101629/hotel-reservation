@@ -213,22 +213,10 @@
                             return;
                         }
 
-                        // Get current search criteria or use default values
+                        // Get current search criteria
                         const checkInDate = document.getElementById('checkInDate')?.value || getDefaultCheckInDate();
                         const checkOutDate = document.getElementById('checkOutDate')?.value || getDefaultCheckOutDate();
-                        const numberOfGuests = document.getElementById('guests')?.value || '2';
-                        
-                        // Log the booking attempt with current values
-                        console.log('Booking with values:', {
-                            checkInDate,
-                            checkOutDate,
-                            numberOfGuests,
-                            fromForm: {
-                                checkIn: document.getElementById('checkInDate')?.value,
-                                checkOut: document.getElementById('checkOutDate')?.value,
-                                guests: document.getElementById('guests')?.value
-                            }
-                        });
+                        const numberOfGuests = document.getElementById('guests')?.value || 2;
 
                         // Store selected room data
                         const selectedRoomData = {
@@ -287,18 +275,14 @@
                 checkInDate.min = today;
                 checkOutDate.min = today;
 
-                // Set default dates - check-in tomorrow, check-out day after tomorrow
+                // Set default dates if not already set
                 if (!checkInDate.value) {
-                    checkInDate.value = getDefaultCheckInDate();
+                    checkInDate.value = today;
                 }
                 if (!checkOutDate.value) {
-                    checkOutDate.value = getDefaultCheckOutDate();
-                }
-                
-                // Set default guests if not already set
-                const guestsSelect = document.getElementById('guests');
-                if (guestsSelect && !guestsSelect.value) {
-                    guestsSelect.value = '2';
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    checkOutDate.value = tomorrow.toISOString().split('T')[0];
                 }
 
                 checkInDate.addEventListener('change', function() {
@@ -413,22 +397,10 @@
                             return;
                         }
 
-                        // Get current search criteria or use default values
+                        // Get current search criteria
                         const checkInDate = document.getElementById('checkInDate')?.value || getDefaultCheckInDate();
                         const checkOutDate = document.getElementById('checkOutDate')?.value || getDefaultCheckOutDate();
-                        const numberOfGuests = document.getElementById('guests')?.value || '2';
-                        
-                        // Log the booking attempt with current values
-                        console.log('Booking with values:', {
-                            checkInDate,
-                            checkOutDate,
-                            numberOfGuests,
-                            fromForm: {
-                                checkIn: document.getElementById('checkInDate')?.value,
-                                checkOut: document.getElementById('checkOutDate')?.value,
-                                guests: document.getElementById('guests')?.value
-                            }
-                        });
+                        const numberOfGuests = document.getElementById('guests')?.value || 2;
 
                         // Store selected room data
                         const selectedRoomData = {

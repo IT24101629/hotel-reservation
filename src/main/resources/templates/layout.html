@@ -100,6 +100,9 @@
 <!-- JavaScript -->
 <script src="/js/main.js"></script>
 
-<!-- Page-specific JavaScript is included inline in each template -->
+<!-- Include additional JavaScript fragments if they exist -->
+<th:block th:replace="~{rooms :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'rooms')}"></th:block>
+<th:block th:replace="~{booking :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'booking')}"></th:block>
+<th:block th:replace="~{payment :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'payment')}"></th:block>
 </body>
 </html>

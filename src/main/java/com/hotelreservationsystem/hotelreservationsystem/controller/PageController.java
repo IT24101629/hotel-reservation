@@ -1,6 +1,5 @@
 package com.hotelreservationsystem.hotelreservationsystem.controller;
 
-import com.hotelreservationsystem.hotelreservationsystem.model.Customer;
 import com.hotelreservationsystem.hotelreservationsystem.model.User;
 import com.hotelreservationsystem.hotelreservationsystem.model.UserRole;
 import com.hotelreservationsystem.hotelreservationsystem.service.BookingService;
@@ -13,7 +12,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
@@ -166,107 +164,26 @@ public class PageController {
     // Booking page
     @GetMapping("/booking")
     public String booking(Model model, Authentication authentication) {
-        try {
-            System.out.println("Booking: Processing request");
+        System.out.println("Booking: Processing request");
 
-            // Check if user is logged in
-            if (authentication == null || !authentication.isAuthenticated()) {
-                System.out.println("Booking: User not authenticated, redirecting to login");
-                return "redirect:/auth/login?returnUrl=/booking";
-            }
-
-            String email = authentication.getName();
-            System.out.println("Booking: Looking up user with email: " + email);
-            
-            User user = userService.findByEmail(email);
-
-            if (user != null) {
-                model.addAttribute("user", user);
-                System.out.println("Booking: User found - " + user.getFirstName());
-            } else {
-                System.out.println("Booking: User not found for email " + email);
-                model.addAttribute("errorMessage", "User not found");
-            }
-
-            System.out.println("Booking: Returning booking template");
-            return "booking";
-            
-        } catch (Exception e) {
-            System.err.println("Booking: Exception occurred in booking method:");
-            e.printStackTrace();
-            model.addAttribute("errorMessage", "An error occurred while loading the booking page: " + e.getMessage());
-            return "error";
+        // Check if user is logged in
+        if (authentication == null || !authentication.isAuthenticated()) {
+            System.out.println("Booking: User not authenticated, redirecting to login");
+            return "redirect:/auth/login?returnUrl=/booking";
         }
-    }
 
-    // Individual booking details page
-    @GetMapping("/booking/{bookingId}")
-    public String viewBookingDetails(@PathVariable Long bookingId, Model model, Authentication authentication) {
-        try {
-            System.out.println("BookingDetails: Processing request for booking ID: " + bookingId);
+        String email = authentication.getName();
+        User user = userService.findByEmail(email);
 
-            // Check if user is logged in
-            if (authentication == null || !authentication.isAuthenticated()) {
-                System.out.println("BookingDetails: User not authenticated, redirecting to login");
-                return "redirect:/auth/login?returnUrl=/booking/" + bookingId;
-            }
-
-            String email = authentication.getName();
-            System.out.println("BookingDetails: Authenticated user: " + email);
-            
-            // Get user and customer info
-            User user = userService.findByEmail(email);
-            if (user == null) {
-                System.out.println("BookingDetails: User not found for email: " + email);
-                model.addAttribute("errorMessage", "User not found");
-                return "error";
-            }
-
-            Customer customer = customerService.findByUserId(user.getUserId());
-            if (customer == null) {
-                System.out.println("BookingDetails: Customer not found for user ID: " + user.getUserId());
-                model.addAttribute("errorMessage", "Customer profile not found");
-                return "error";
-            }
-
-            // Get booking details and verify ownership
-            System.out.println("BookingDetails: Fetching booking details for ID: " + bookingId);
-            
-            try {
-                var booking = bookingService.getBookingById(bookingId);
-                if (booking == null) {
-                    System.out.println("BookingDetails: Booking not found for ID: " + bookingId);
-                    model.addAttribute("errorMessage", "Booking not found");
-                    return "error";
-                }
-                
-                // Verify that this booking belongs to the current customer
-                if (!booking.getCustomerId().equals(customer.getCustomerId())) {
-                    System.out.println("BookingDetails: Access denied - booking doesn't belong to customer");
-                    model.addAttribute("errorMessage", "Access denied - this booking doesn't belong to you");
-                    return "error";
-                }
-                
-                System.out.println("BookingDetails: Booking found - " + booking.getBookingReference());
-                model.addAttribute("booking", booking);
-                model.addAttribute("user", user);
-                model.addAttribute("customer", customer);
-                
-                return "booking-details";
-                
-            } catch (Exception e) {
-                System.err.println("BookingDetails: Error fetching booking: " + e.getMessage());
-                e.printStackTrace();
-                model.addAttribute("errorMessage", "Error loading booking details");
-                return "error";
-            }
-
-        } catch (Exception e) {
-            System.err.println("BookingDetails: Exception occurred:");
-            e.printStackTrace();
-            model.addAttribute("errorMessage", "An error occurred while loading booking details: " + e.getMessage());
-            return "error";
+        if (user != null) {
+            model.addAttribute("user", user);
+            System.out.println("Booking: User found - " + user.getFirstName());
+        } else {
+            System.out.println("Booking: User not found for email " + email);
+            model.addAttribute("errorMessage", "User not found");
         }
+
+        return "booking";
     }
 
     // Payment page

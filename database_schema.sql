@@ -101,7 +101,7 @@ CREATE TABLE bookings (
     number_of_nights INT NOT NULL,
     room_price_per_night DECIMAL(10,2) NOT NULL,
     total_amount DECIMAL(10,2) NOT NULL,
-    booking_status ENUM('PENDING', 'PENDING_PAYMENT', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED', 'COMPLETED', 'NO_SHOW') DEFAULT 'PENDING',
+    booking_status ENUM('PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED', 'COMPLETED', 'NO_SHOW') DEFAULT 'PENDING',
     payment_status ENUM('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED', 'PARTIAL_REFUND') DEFAULT 'PENDING',
     special_requests TEXT,
     customer_notes TEXT,
