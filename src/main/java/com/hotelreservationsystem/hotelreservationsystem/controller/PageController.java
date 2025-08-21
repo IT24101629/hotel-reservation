@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
@@ -293,6 +294,39 @@ public class PageController {
         }
 
         return "profile";
+    }
+
+    // Single booking view page
+    @GetMapping("/booking/{bookingId}")
+    public String viewBooking(@PathVariable Long bookingId, Model model, Authentication authentication) {
+        System.out.println("View Booking: Processing request for booking ID: " + bookingId);
+
+        // Check if user is logged in
+        if (authentication == null || !authentication.isAuthenticated()) {
+            System.out.println("View Booking: User not authenticated, redirecting to login");
+            return "redirect:/auth/login?returnUrl=/booking/" + bookingId;
+        }
+
+        String email = authentication.getName();
+        try {
+            var booking = bookingService.getBookingById(bookingId);
+            
+            // Check if this booking belongs to the logged-in user
+            if (!booking.getCustomerEmail().equals(email)) {
+                System.out.println("View Booking: Access denied - booking does not belong to user");
+                return "redirect:/my-bookings?error=access_denied";
+            }
+            
+            model.addAttribute("booking", booking);
+            System.out.println("View Booking: Booking found - " + booking.getBookingReference());
+            
+            return "booking-detail";
+            
+        } catch (Exception e) {
+            System.out.println("View Booking: Error loading booking - " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/my-bookings?error=booking_not_found";
+        }
     }
 
     // Booking confirmation page

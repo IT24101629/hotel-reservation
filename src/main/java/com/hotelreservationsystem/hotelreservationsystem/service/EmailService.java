@@ -264,8 +264,8 @@ public class EmailService {
             "        .label { font-weight: bold; color: #2c3e50; }" +
             "        .value { color: #34495e; }" +
             "        .total { font-size: 1.2em; font-weight: bold; color: #27ae60; background: #e8f5e8; padding: 15px; border-radius: 5px; text-align: center; }" +
-            "        .qr-section { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; border: 2px dashed #27ae60; }" +
-            "        .qr-code { max-width: 200px; margin: 10px auto; }" +
+            "        .qr-section { background: white; padding: 25px; margin: 20px 0; border-radius: 8px; text-align: center; border: 2px solid #27ae60; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }" +
+            "        .qr-code { max-width: 200px; height: 200px; margin: 15px auto; display: block; border: 1px solid #ddd; border-radius: 5px; }" +
             "        .footer { text-align: center; margin: 30px 0; color: #7f8c8d; }" +
             "    </style>" +
             "</head>" +
@@ -294,10 +294,12 @@ public class EmailService {
             "            </div>" +
             (qrCodeBase64 != null && !qrCodeBase64.isEmpty() ?
                 "            <div class='qr-section'>" +
-                "                <h3>📱 Your Booking QR Code</h3>" +
-                "                <p>Present this QR code at check-in for quick verification:</p>" +
-                "                <img src='data:image/png;base64," + qrCodeBase64 + "' alt='Booking QR Code' class='qr-code'>" +
-                "                <p><small>You can also find the QR code as an attachment to this email.</small></p>" +
+                "                <h3 style='color: #27ae60; margin-bottom: 15px;'>📱 Your Booking QR Code</h3>" +
+                "                <p style='margin-bottom: 20px; font-weight: 500;'>Present this QR code at check-in for quick verification:</p>" +
+                "                <div style='display: flex; justify-content: center; align-items: center;'>" +
+                "                    <img src='data:image/png;base64," + qrCodeBase64 + "' alt='Booking QR Code' class='qr-code' style='object-fit: contain;'>" +
+                "                </div>" +
+                "                <p style='margin-top: 15px; color: #666; font-size: 0.9em;'><small>📎 QR code is also attached as a separate file for convenience.</small></p>" +
                 "            </div>" : "") +
             "            <div class='footer'>" +
             "                <p><strong>What's Next?</strong></p>" +
