@@ -108,7 +108,8 @@ public class EmailService {
             "        .header { background: linear-gradient(135deg, #3498db, #2c3e50); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }" +
             "        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }" +
             "        .booking-details { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #3498db; }" +
-            "        .detail-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }" +
+            "        .detail-row { margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }" +
+            "        .detail-table { width: 100%; border-collapse: collapse; }" +
             "        .label { font-weight: bold; color: #2c3e50; }" +
             "        .value { color: #34495e; }" +
             "        .total { font-size: 1.2em; font-weight: bold; color: #27ae60; background: #e8f5e8; padding: 15px; border-radius: 5px; text-align: center; }" +
@@ -197,7 +198,7 @@ public class EmailService {
             booking.getNumberOfGuests(),
             calculateNights(booking),
             booking.getSpecialRequests() != null && !booking.getSpecialRequests().trim().isEmpty() ?
-                String.format("<div class='detail-row'><span class='label'>📝 Special Requests:</span><span class='value'>%s</span></div>", 
+                String.format("<tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>📝 Special Requests:</td><td class='value' style='color: #34495e; text-align: right;'>%s</td></tr>", 
                             booking.getSpecialRequests()) : "",
             booking.getTotalAmount()
         );
@@ -224,20 +225,31 @@ public class EmailService {
      */
     public void sendBookingConfirmationWithQR(Booking booking, String customerEmail, String qrCodeBase64) {
         try {
+            System.out.println("🔄 Starting email sending process...");
+            System.out.println("📧 Customer email: " + customerEmail);
+            System.out.println("🎫 Booking reference: " + booking.getBookingReference());
+            System.out.println("📱 QR code provided: " + (qrCodeBase64 != null && !qrCodeBase64.isEmpty()));
+            
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
             
             helper.setTo(customerEmail);
             helper.setSubject("✅ Payment Confirmed - Booking " + booking.getBookingReference());
-            helper.setText(createPaymentConfirmationHtml(booking, qrCodeBase64), true);
+            helper.setFrom("goldpalmhotelsliit@gmail.com");
+            
+            System.out.println("📝 Creating email content...");
+            String emailContent = createPaymentConfirmationHtml(booking, qrCodeBase64);
+            helper.setText(emailContent, true);
             
             // Attach QR code as image if Base64 provided
             if (qrCodeBase64 != null && !qrCodeBase64.isEmpty()) {
+                System.out.println("📎 Attaching QR code...");
                 byte[] qrCodeBytes = java.util.Base64.getDecoder().decode(qrCodeBase64);
                 ByteArrayResource qrResource = new ByteArrayResource(qrCodeBytes);
                 helper.addAttachment("booking-qr-code.png", qrResource);
             }
             
+            System.out.println("📤 Sending email...");
             mailSender.send(mimeMessage);
             System.out.println("✅ Payment confirmation email with QR code sent to: " + customerEmail);
             
@@ -260,12 +272,13 @@ public class EmailService {
             "        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }" +
             "        .payment-success { background: #d4edda; color: #155724; padding: 20px; margin: 20px 0; border-radius: 8px; border: 1px solid #c3e6cb; text-align: center; }" +
             "        .booking-details { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #27ae60; }" +
-            "        .detail-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }" +
+            "        .detail-row { margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }" +
+            "        .detail-table { width: 100%; border-collapse: collapse; }" +
             "        .label { font-weight: bold; color: #2c3e50; }" +
             "        .value { color: #34495e; }" +
             "        .total { font-size: 1.2em; font-weight: bold; color: #27ae60; background: #e8f5e8; padding: 15px; border-radius: 5px; text-align: center; }" +
-            "        .qr-section { background: white; padding: 25px; margin: 20px 0; border-radius: 8px; text-align: center; border: 2px solid #27ae60; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }" +
-            "        .qr-code { max-width: 200px; height: 200px; margin: 15px auto; display: block; border: 1px solid #ddd; border-radius: 5px; }" +
+            "        .qr-section { background: white; padding: 25px; margin: 20px auto; border-radius: 8px; text-align: center; border: 2px solid #27ae60; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 400px; }" +
+            "        .qr-code { width: 200px; height: 200px; margin: 15px auto; display: block; border: 2px solid #27ae60; border-radius: 8px; }" +
             "        .footer { text-align: center; margin: 30px 0; color: #7f8c8d; }" +
             "    </style>" +
             "</head>" +
@@ -282,25 +295,31 @@ public class EmailService {
             "            </div>" +
             "            <div class='booking-details'>" +
             "                <h3>📋 Booking Details</h3>" +
-            "                <div class='detail-row'><span class='label'>🎫 Booking Reference:</span><span class='value'>%s</span></div>" +
-            "                <div class='detail-row'><span class='label'>🏨 Room Number:</span><span class='value'>%s</span></div>" +
-            "                <div class='detail-row'><span class='label'>🛏️ Room Type:</span><span class='value'>%s</span></div>" +
-            "                <div class='detail-row'><span class='label'>📅 Check-in Date:</span><span class='value'>%s</span></div>" +
-            "                <div class='detail-row'><span class='label'>📅 Check-out Date:</span><span class='value'>%s</span></div>" +
-            "                <div class='detail-row'><span class='label'>👥 Number of Guests:</span><span class='value'>%d</span></div>" +
-            "                <div class='detail-row'><span class='label'>🌙 Number of Nights:</span><span class='value'>%d</span></div>" +
-            "                %s" +
-            "                <div class='total'>💰 Total Amount Paid: LKR %.2f</div>" +
+            "                <table class='detail-table' width='100%' cellpadding='8' cellspacing='0'>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>🎫 Booking Reference:</td><td class='value' style='color: #34495e; text-align: right;'>%s</td></tr>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>🏨 Room Number:</td><td class='value' style='color: #34495e; text-align: right;'>%s</td></tr>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>🛏️ Room Type:</td><td class='value' style='color: #34495e; text-align: right;'>%s</td></tr>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>📅 Check-in Date:</td><td class='value' style='color: #34495e; text-align: right;'>%s</td></tr>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>📅 Check-out Date:</td><td class='value' style='color: #34495e; text-align: right;'>%s</td></tr>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>👥 Number of Guests:</td><td class='value' style='color: #34495e; text-align: right;'>%d</td></tr>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>🌙 Number of Nights:</td><td class='value' style='color: #34495e; text-align: right;'>%d</td></tr>" +
+            "                    %s" +
+            "                </table>" +
+            "                <div class='total' style='font-size: 1.2em; font-weight: bold; color: #27ae60; background: #e8f5e8; padding: 15px; border-radius: 5px; text-align: center; margin-top: 15px;'>💰 Total Amount Paid: LKR %.2f</div>" +
             "            </div>" +
             (qrCodeBase64 != null && !qrCodeBase64.isEmpty() ?
-                "            <div class='qr-section'>" +
-                "                <h3 style='color: #27ae60; margin-bottom: 15px;'>📱 Your Booking QR Code</h3>" +
-                "                <p style='margin-bottom: 20px; font-weight: 500;'>Present this QR code at check-in for quick verification:</p>" +
-                "                <div style='display: flex; justify-content: center; align-items: center;'>" +
-                "                    <img src='data:image/png;base64," + qrCodeBase64 + "' alt='Booking QR Code' class='qr-code' style='object-fit: contain;'>" +
-                "                </div>" +
-                "                <p style='margin-top: 15px; color: #666; font-size: 0.9em;'><small>📎 QR code is also attached as a separate file for convenience.</small></p>" +
-                "            </div>" : "") +
+                "            <table class='qr-section' width='100%' cellpadding='0' cellspacing='0' style='background: white; padding: 25px; margin: 20px auto; border-radius: 8px; text-align: center; border: 2px solid #27ae60; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 400px;'>" +
+                "                <tr>" +
+                "                    <td style='text-align: center; padding: 10px;'>" +
+                "                        <h3 style='color: #27ae60; margin: 0 0 15px 0; font-size: 18px;'>📱 Your Booking QR Code</h3>" +
+                "                        <p style='margin: 0 0 20px 0; font-weight: 500; color: #333;'>Present this QR code at check-in for quick verification:</p>" +
+                "                        <div style='text-align: center; margin: 20px 0;'>" +
+                "                            <img src='data:image/png;base64," + qrCodeBase64 + "' alt='Booking QR Code' style='width: 200px; height: 200px; border: 2px solid #27ae60; border-radius: 8px; display: block; margin: 0 auto;'>" +
+                "                        </div>" +
+                "                        <p style='margin: 15px 0 0 0; color: #666; font-size: 0.9em;'>📎 QR code is also attached as a separate file for convenience.</p>" +
+                "                    </td>" +
+                "                </tr>" +
+                "            </table>" : "") +
             "            <div class='footer'>" +
             "                <p><strong>What's Next?</strong></p>" +
             "                <ul style='text-align: left; display: inline-block;'>" +
@@ -326,7 +345,7 @@ public class EmailService {
             booking.getNumberOfGuests(),
             calculateNights(booking),
             booking.getSpecialRequests() != null && !booking.getSpecialRequests().trim().isEmpty() ?
-                String.format("<div class='detail-row'><span class='label'>📝 Special Requests:</span><span class='value'>%s</span></div>", 
+                String.format("<tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>📝 Special Requests:</td><td class='value' style='color: #34495e; text-align: right;'>%s</td></tr>", 
                             booking.getSpecialRequests()) : "",
             booking.getTotalAmount()
         );
