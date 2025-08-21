@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
+<head>
+    <title>PayHere Payment - Hotel Reservation System</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="container">
+            <section class="mt-2 mb-3 text-center">
+                <h1>💳 Fresh PayHere Payment</h1>
+                <p>Complete your payment securely with PayHere</p>
+            </section>
+            
+            <div class="booking-container">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>🔒 Secure Payment</h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- Payment Form -->
+                        <form id="fresh-payhere-form" method="post" action="https://sandbox.payhere.lk/pay/checkout">
+                            <!-- PayHere Required Fields -->
+                            <input type="hidden" name="merchant_id" value="1221688">
+                            <input type="hidden" name="return_url" value="http://localhost:8080/payment/success">
+                            <input type="hidden" name="cancel_url" value="http://localhost:8080/payment/cancel">
+                            <input type="hidden" name="notify_url" value="http://localhost:8080/api/payment/payhere/notify">
+                            
+                            <!-- Order Details -->
+                            <input type="hidden" name="order_id" id="order-id" value="">
+                            <input type="hidden" name="items" value="Hotel Room Booking">
+                            <input type="hidden" name="currency" value="LKR">
+                            <input type="hidden" name="amount" id="payment-amount" value="">
+                            
+                            <!-- Customer Details -->
+                            <input type="hidden" name="first_name" id="customer-first-name" value="">
+                            <input type="hidden" name="last_name" id="customer-last-name" value="">
+                            <input type="hidden" name="email" id="customer-email" value="">
+                            <input type="hidden" name="phone" value="+94771234567">
+                            <input type="hidden" name="address" value="Hotel Booking Address">
+                            <input type="hidden" name="city" value="Colombo">
+                            <input type="hidden" name="country" value="Sri Lanka">
+                            
+                            <!-- Payment Hash -->
+                            <input type="hidden" name="hash" id="payment-hash" value="">
+                            
+                            <!-- Booking Information Display -->
+                            <div id="booking-info" class="mb-3">
+                                <h3>📋 Booking Details</h3>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div id="loading" class="text-center">
+                                            <p>Loading booking information...</p>
+                                            <div class="spinner-border" role="status">
+                                                <span class="sr-only">Loading...</span>
+                                            </div>
+                                        </div>
+                                        <div id="booking-details" style="display: none;">
+                                            <p><strong>Booking Reference:</strong> <span id="display-booking-ref">-</span></p>
+                                            <p><strong>Customer:</strong> <span id="display-customer-name">-</span></p>
+                                            <p><strong>Total Amount:</strong> <span id="display-amount">LKR 0.00</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Payment Button -->
+                            <div class="text-center">
+                                <button type="button" id="pay-now-btn" class="btn btn-success btn-lg" onclick="processPayment()" disabled>
+                                    💳 Pay with PayHere
+                                </button>
+                                <div id="status" class="mt-3"></div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <th:block th:fragment="additional-js">
+        <script>
+            let bookingData = null;
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Fresh PayHere payment page loaded');
+                loadBookingData();
+            });
+            
+            function loadBookingData() {
+                // Get booking ID from URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const bookingId = urlParams.get('bookingId');
+                
+                if (!bookingId) {
+                    showStatus('No booking ID provided', 'error');
+                    return;
+                }
+                
+                console.log('Loading booking data for ID:', bookingId);
+                
+                fetch(`/api/payment/booking/${bookingId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            bookingData = data;
+                            displayBookingInfo(data);
+                            preparePaymentForm(data);
+                        } else {
+                            showStatus('Error loading booking: ' + data.error, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading booking:', error);
+                        showStatus('Error loading booking data', 'error');
+                    });
+            }
+            
+            function displayBookingInfo(data) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('booking-details').style.display = 'block';
+                
+                document.getElementById('display-booking-ref').textContent = data.bookingReference;
+                document.getElementById('display-customer-name').textContent = data.customerName;
+                document.getElementById('display-amount').textContent = `LKR ${data.amount.toFixed(2)}`;
+            }
+            
+            function preparePaymentForm(data) {
+                // Fill form fields
+                document.getElementById('order-id').value = data.bookingReference;
+                document.getElementById('payment-amount').value = data.amount.toFixed(2);
+                
+                // Split customer name
+                const nameParts = data.customerName.split(' ');
+                document.getElementById('customer-first-name').value = nameParts[0] || 'Guest';
+                document.getElementById('customer-last-name').value = nameParts.slice(1).join(' ') || 'Customer';
+                document.getElementById('customer-email').value = data.customerEmail;
+                
+                // Generate hash
+                generatePaymentHash(data.bookingReference, data.amount.toFixed(2), 'LKR');
+            }
+            
+            function generatePaymentHash(orderId, amount, currency) {
+                console.log('Generating fresh hash for:', orderId, amount, currency);
+                
+                fetch('/api/payment/payhere/generate-hash', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        orderId: orderId,
+                        amount: amount,
+                        currency: currency
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('payment-hash').value = data.hash;
+                        document.getElementById('pay-now-btn').disabled = false;
+                        console.log('Fresh hash generated:', data.hash);
+                        showStatus('Payment ready', 'success');
+                    } else {
+                        showStatus('Error generating payment hash: ' + data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error generating hash:', error);
+                    showStatus('Error preparing payment', 'error');
+                });
+            }
+            
+            function processPayment() {
+                showStatus('Redirecting to PayHere...', 'info');
+                
+                // Log payment details for debugging
+                console.log('=== FRESH PAYHERE PAYMENT SUBMISSION ===');
+                console.log('Merchant ID: 1221688');
+                console.log('Order ID:', document.getElementById('order-id').value);
+                console.log('Amount:', document.getElementById('payment-amount').value);
+                console.log('Currency: LKR');
+                console.log('Hash:', document.getElementById('payment-hash').value);
+                console.log('Customer:', document.getElementById('customer-first-name').value, document.getElementById('customer-last-name').value);
+                console.log('Email:', document.getElementById('customer-email').value);
+                
+                // Submit form to PayHere
+                document.getElementById('fresh-payhere-form').submit();
+            }
+            
+            function showStatus(message, type) {
+                const statusDiv = document.getElementById('status');
+                statusDiv.textContent = message;
+                statusDiv.className = 'mt-3';
+                
+                if (type === 'error') {
+                    statusDiv.className += ' alert alert-danger';
+                } else if (type === 'success') {
+                    statusDiv.className += ' alert alert-success';
+                } else if (type === 'info') {
+                    statusDiv.className += ' alert alert-info';
+                }
+            }
+        </script>
+    </th:block>
+</body>
+</html>

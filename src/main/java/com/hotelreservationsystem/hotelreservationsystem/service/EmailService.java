@@ -219,6 +219,117 @@ public class EmailService {
         return baos.toByteArray();
     }
     
+    /**
+     * Send booking confirmation with QR code after payment success
+     */
+    public void sendBookingConfirmationWithQR(Booking booking, String customerEmail, String qrCodeBase64) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            
+            helper.setTo(customerEmail);
+            helper.setSubject("✅ Payment Confirmed - Booking " + booking.getBookingReference());
+            helper.setText(createPaymentConfirmationHtml(booking, qrCodeBase64), true);
+            
+            // Attach QR code as image if Base64 provided
+            if (qrCodeBase64 != null && !qrCodeBase64.isEmpty()) {
+                byte[] qrCodeBytes = java.util.Base64.getDecoder().decode(qrCodeBase64);
+                ByteArrayResource qrResource = new ByteArrayResource(qrCodeBytes);
+                helper.addAttachment("booking-qr-code.png", qrResource);
+            }
+            
+            mailSender.send(mimeMessage);
+            System.out.println("✅ Payment confirmation email with QR code sent to: " + customerEmail);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error sending payment confirmation email: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    private String createPaymentConfirmationHtml(Booking booking, String qrCodeBase64) {
+        return String.format(
+            "<!DOCTYPE html>" +
+            "<html>" +
+            "<head>" +
+            "    <meta charset='UTF-8'>" +
+            "    <style>" +
+            "        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
+            "        .container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
+            "        .header { background: linear-gradient(135deg, #27ae60, #2c3e50); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }" +
+            "        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }" +
+            "        .payment-success { background: #d4edda; color: #155724; padding: 20px; margin: 20px 0; border-radius: 8px; border: 1px solid #c3e6cb; text-align: center; }" +
+            "        .booking-details { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #27ae60; }" +
+            "        .detail-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }" +
+            "        .label { font-weight: bold; color: #2c3e50; }" +
+            "        .value { color: #34495e; }" +
+            "        .total { font-size: 1.2em; font-weight: bold; color: #27ae60; background: #e8f5e8; padding: 15px; border-radius: 5px; text-align: center; }" +
+            "        .qr-section { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; border: 2px dashed #27ae60; }" +
+            "        .qr-code { max-width: 200px; margin: 10px auto; }" +
+            "        .footer { text-align: center; margin: 30px 0; color: #7f8c8d; }" +
+            "    </style>" +
+            "</head>" +
+            "<body>" +
+            "    <div class='container'>" +
+            "        <div class='header'>" +
+            "            <h1>🎉 Payment Confirmed!</h1>" +
+            "            <p>Your hotel booking has been successfully paid and confirmed</p>" +
+            "        </div>" +
+            "        <div class='content'>" +
+            "            <div class='payment-success'>" +
+            "                <h2>✅ Payment Successful</h2>" +
+            "                <p>Your payment has been processed successfully. Your booking is now confirmed!</p>" +
+            "            </div>" +
+            "            <div class='booking-details'>" +
+            "                <h3>📋 Booking Details</h3>" +
+            "                <div class='detail-row'><span class='label'>🎫 Booking Reference:</span><span class='value'>%s</span></div>" +
+            "                <div class='detail-row'><span class='label'>🏨 Room Number:</span><span class='value'>%s</span></div>" +
+            "                <div class='detail-row'><span class='label'>🛏️ Room Type:</span><span class='value'>%s</span></div>" +
+            "                <div class='detail-row'><span class='label'>📅 Check-in Date:</span><span class='value'>%s</span></div>" +
+            "                <div class='detail-row'><span class='label'>📅 Check-out Date:</span><span class='value'>%s</span></div>" +
+            "                <div class='detail-row'><span class='label'>👥 Number of Guests:</span><span class='value'>%d</span></div>" +
+            "                <div class='detail-row'><span class='label'>🌙 Number of Nights:</span><span class='value'>%d</span></div>" +
+            "                %s" +
+            "                <div class='total'>💰 Total Amount Paid: LKR %.2f</div>" +
+            "            </div>" +
+            (qrCodeBase64 != null && !qrCodeBase64.isEmpty() ?
+                "            <div class='qr-section'>" +
+                "                <h3>📱 Your Booking QR Code</h3>" +
+                "                <p>Present this QR code at check-in for quick verification:</p>" +
+                "                <img src='data:image/png;base64," + qrCodeBase64 + "' alt='Booking QR Code' class='qr-code'>" +
+                "                <p><small>You can also find the QR code as an attachment to this email.</small></p>" +
+                "            </div>" : "") +
+            "            <div class='footer'>" +
+            "                <p><strong>What's Next?</strong></p>" +
+            "                <ul style='text-align: left; display: inline-block;'>" +
+            "                    <li>Save this email for your records</li>" +
+            "                    <li>Present the QR code at check-in</li>" +
+            "                    <li>Arrive on your check-in date</li>" +
+            "                    <li>Enjoy your stay!</li>" +
+            "                </ul>" +
+            "                <p style='margin-top: 30px;'><em>Thank you for choosing Gold Palm Hotel!</em></p>" +
+            "                <p style='font-size: 0.9em; margin-top: 20px;'>" +
+            "                    Questions? Contact us at <a href='mailto:support@goldpalmhotel.com'>support@goldpalmhotel.com</a>" +
+            "                </p>" +
+            "            </div>" +
+            "        </div>" +
+            "    </div>" +
+            "</body>" +
+            "</html>",
+            booking.getBookingReference(),
+            booking.getRoom().getRoomNumber(),
+            booking.getRoom().getRoomType().getTypeName(),
+            booking.getCheckInDate(),
+            booking.getCheckOutDate(),
+            booking.getNumberOfGuests(),
+            calculateNights(booking),
+            booking.getSpecialRequests() != null && !booking.getSpecialRequests().trim().isEmpty() ?
+                String.format("<div class='detail-row'><span class='label'>📝 Special Requests:</span><span class='value'>%s</span></div>", 
+                            booking.getSpecialRequests()) : "",
+            booking.getTotalAmount()
+        );
+    }
+    
     private String createBookingCancellationText(Booking booking) {
         return String.format(
             "Dear Guest,\n\n" +

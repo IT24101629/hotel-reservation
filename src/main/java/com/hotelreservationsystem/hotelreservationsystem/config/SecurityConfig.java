@@ -76,12 +76,10 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index", "/home").permitAll()
                         .requestMatchers("/auth/login", "/auth/register").permitAll()
                         .requestMatchers("/rooms").permitAll()
-                        .requestMatchers("/payhere-test").permitAll()
                         .requestMatchers("/error").permitAll()
 
-                        // API endpoints - payment notification should be public
-                        .requestMatchers("/api/payment/payhere/notify").permitAll()
-                        .requestMatchers("/api/payment/payhere/generate-hash").permitAll()
+                        // Custom payment endpoints - require authentication
+                        .requestMatchers("/api/custom-payment/**").authenticated()
 
                         // Protected pages - require authentication
                         .requestMatchers("/dashboard/**").authenticated()
@@ -116,33 +114,26 @@ public class SecurityConfig {
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false)
                 )
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/payment/payhere/notify")
-                        .ignoringRequestMatchers("/api/payment/payhere/generate-hash")
-                )
+                .csrf(csrf -> {
+                        // CSRF is enabled for custom payment endpoints for security
+                })
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp
                                 .policyDirectives("default-src 'self'; " +
                                         "script-src 'self' 'unsafe-inline' 'unsafe-eval' " +
-                                        "https://sandbox.payhere.lk https://www.payhere.lk " +
                                         "https://www.google-analytics.com https://www.googletagmanager.com " +
                                         "https://maxcdn.bootstrapcdn.com https://cdnjs.cloudflare.com; " +
                                         "style-src 'self' 'unsafe-inline' " +
-                                        "https://sandbox.payhere.lk https://www.payhere.lk " +
                                         "https://maxcdn.bootstrapcdn.com https://cdnjs.cloudflare.com " +
                                         "https://fonts.googleapis.com; " +
                                         "font-src 'self' https://fonts.gstatic.com " +
                                         "https://maxcdn.bootstrapcdn.com https://cdnjs.cloudflare.com; " +
                                         "img-src 'self' data: " +
-                                        "https://sandbox.payhere.lk https://www.payhere.lk " +
                                         "https://www.google-analytics.com; " +
                                         "connect-src 'self' " +
-                                        "https://sandbox.payhere.lk https://www.payhere.lk " +
                                         "https://www.google-analytics.com https://analytics.google.com; " +
-                                        "frame-src 'self' " +
-                                        "https://sandbox.payhere.lk https://www.payhere.lk; " +
-                                        "form-action 'self' " +
-                                        "https://sandbox.payhere.lk https://www.payhere.lk;")
+                                        "frame-src 'self'; " +
+                                        "form-action 'self';")
                         )
                 );
 

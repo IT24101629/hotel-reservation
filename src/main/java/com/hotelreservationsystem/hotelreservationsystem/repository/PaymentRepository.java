@@ -15,17 +15,17 @@ import java.util.Optional;
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
     
-    // Find payment by booking ID
-    Optional<Payment> findByBooking_BookingId(Long bookingId);
+    // Find payments by booking ID (multiple payments possible)
+    List<Payment> findByBooking_BookingId(Long bookingId);
+    
+    // Find payment by transaction ID (payment reference)
+    Optional<Payment> findByTransactionId(String transactionId);
     
     // Find payments by payment method
     List<Payment> findByPaymentMethod(PaymentMethod paymentMethod);
     
     // Find payments by status
     List<Payment> findByPaymentStatus(PaymentStatus status);
-    
-    // Find payment by transaction ID
-    Optional<Payment> findByTransactionId(String transactionId);
     
     // Find payments by date range
     @Query("SELECT p FROM Payment p WHERE p.paymentDate >= :startDate AND p.paymentDate <= :endDate")

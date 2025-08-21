@@ -33,8 +33,6 @@ public class Payment {
     @Column(name = "transaction_id", unique = true, length = 100)
     private String transactionId;
     
-    @Column(name = "payhere_payment_id", length = 100)
-    private String payherePaymentId;
     
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
     @NotNull(message = "Payment amount is required")
@@ -125,13 +123,6 @@ public class Payment {
         this.transactionId = transactionId;
     }
     
-    public String getPayherePaymentId() {
-        return payherePaymentId;
-    }
-    
-    public void setPayherePaymentId(String payherePaymentId) {
-        this.payherePaymentId = payherePaymentId;
-    }
     
     public BigDecimal getAmount() {
         return amount;

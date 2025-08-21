@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
+<head>
+    <title>Secure Payment - Hotel Reservation System</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="container">
+            <section class="mt-2 mb-3 text-center">
+                <h1>💳 Secure Payment</h1>
+                <p>Complete your booking payment securely</p>
+            </section>
+            
+            <div class="booking-container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- Booking Summary -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">📋 Booking Summary</h5>
+                            </div>
+                            <div class="card-body" id="booking-summary">
+                                <div id="loading-summary" class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2">Loading booking details...</p>
+                                </div>
+                                <div id="booking-details" style="display: none;">
+                                    <!-- Booking details will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <!-- Payment Form -->
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">🔒 Payment Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="payment-form" novalidate>
+                                    <input type="hidden" id="booking-reference" name="bookingReference" value="">
+                                    <input type="hidden" id="booking-amount" name="amount" value="">
+                                    
+                                    <!-- Card Number -->
+                                    <div class="mb-3">
+                                        <label for="card-number" class="form-label">💳 Card Number</label>
+                                        <input type="text" class="form-control" id="card-number" name="cardNumber" 
+                                               placeholder="1234 5678 9012 3456" maxlength="19" required>
+                                        <div class="invalid-feedback">Please enter a valid card number</div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <!-- Expiry Date -->
+                                            <div class="mb-3">
+                                                <label for="expiry-date" class="form-label">📅 Expiry Date</label>
+                                                <input type="text" class="form-control" id="expiry-date" name="expiryDate" 
+                                                       placeholder="MM/YY" maxlength="5" required>
+                                                <div class="invalid-feedback">Please enter MM/YY format</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <!-- CVV -->
+                                            <div class="mb-3">
+                                                <label for="cvv" class="form-label">🔐 CVV</label>
+                                                <input type="text" class="form-control" id="cvv" name="cvv" 
+                                                       placeholder="123" maxlength="4" required>
+                                                <div class="invalid-feedback">Please enter CVV</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Cardholder Name -->
+                                    <div class="mb-3">
+                                        <label for="cardholder-name" class="form-label">👤 Cardholder Name</label>
+                                        <input type="text" class="form-control" id="cardholder-name" name="cardholderName" 
+                                               placeholder="John Doe" required>
+                                        <div class="invalid-feedback">Please enter cardholder name</div>
+                                    </div>
+                                    
+                                    <!-- Security Note -->
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-shield-alt"></i>
+                                        <strong>Secure Payment:</strong> Your payment information is encrypted and secure.
+                                    </div>
+                                    
+                                    <!-- Test Cards Info -->
+                                    <div class="alert alert-warning">
+                                        <strong>Demo Mode:</strong><br>
+                                        Use <code>4111 1111 1111 1111</code> for successful payment<br>
+                                        Use <code>4000 0000 0000 0002</code> for declined payment
+                                    </div>
+                                    
+                                    <!-- Submit Button -->
+                                    <div class="d-grid">
+                                        <button type="submit" id="pay-button" class="btn btn-success btn-lg" disabled>
+                                            <span id="pay-button-text">💳 Pay Now</span>
+                                            <div id="pay-button-spinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></div>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Status Modal -->
+            <div class="modal fade" id="payment-status-modal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-body text-center p-4">
+                            <div id="payment-success" style="display: none;">
+                                <div class="text-success mb-3">
+                                    <i class="fas fa-check-circle" style="font-size: 4rem;"></i>
+                                </div>
+                                <h3 class="text-success">Payment Successful!</h3>
+                                <p class="mb-3">Your booking has been confirmed and a confirmation email with QR code has been sent.</p>
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-success" onclick="window.location.href='/dashboard'">
+                                        Go to Dashboard
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="payment-error" style="display: none;">
+                                <div class="text-danger mb-3">
+                                    <i class="fas fa-times-circle" style="font-size: 4rem;"></i>
+                                </div>
+                                <h3 class="text-danger">Payment Failed</h3>
+                                <p class="mb-3" id="error-message">Please try again with different payment details.</p>
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                                        Try Again
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <th:block th:fragment="additional-js">
+        <script th:inline="javascript">
+            let bookingData = null;
+            let paymentModal = null;
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Custom payment page loaded');
+                paymentModal = new bootstrap.Modal(document.getElementById('payment-status-modal'));
+                loadBookingDetails();
+                setupFormValidation();
+                setupCardNumberFormatting();
+            });
+            
+            function loadBookingDetails() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const bookingReference = urlParams.get('booking');
+                
+                if (!bookingReference) {
+                    showError('No booking reference provided');
+                    return;
+                }
+                
+                fetch(`/api/custom-payment/validate/${bookingReference}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            bookingData = data;
+                            displayBookingDetails(data);
+                            enablePaymentForm();
+                        } else {
+                            showError(data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading booking:', error);
+                        showError('Failed to load booking details');
+                    });
+            }
+            
+            function displayBookingDetails(data) {
+                const bookingDetailsDiv = document.getElementById('booking-details');
+                const loadingDiv = document.getElementById('loading-summary');
+                
+                bookingDetailsDiv.innerHTML = `
+                    <h6 class="mb-3">🎫 ${data.bookingReference}</h6>
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>Customer:</strong></div>
+                        <div class="col-6">${data.customerName}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>Room:</strong></div>
+                        <div class="col-6">${data.roomNumber} (${data.roomType})</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>Check-in:</strong></div>
+                        <div class="col-6">${data.checkInDate}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>Check-out:</strong></div>
+                        <div class="col-6">${data.checkOutDate}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>Nights:</strong></div>
+                        <div class="col-6">${data.numberOfNights}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>Guests:</strong></div>
+                        <div class="col-6">${data.numberOfGuests}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6"><strong>Total Amount:</strong></div>
+                        <div class="col-6"><strong>LKR ${parseFloat(data.amount).toFixed(2)}</strong></div>
+                    </div>
+                `;
+                
+                // Set form hidden fields
+                document.getElementById('booking-reference').value = data.bookingReference;
+                document.getElementById('booking-amount').value = data.amount;
+                
+                loadingDiv.style.display = 'none';
+                bookingDetailsDiv.style.display = 'block';
+            }
+            
+            function enablePaymentForm() {
+                document.getElementById('pay-button').disabled = false;
+            }
+            
+            function setupFormValidation() {
+                const form = document.getElementById('payment-form');
+                
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    if (validateForm()) {
+                        processPayment();
+                    }
+                });
+            }
+            
+            function setupCardNumberFormatting() {
+                const cardNumberInput = document.getElementById('card-number');
+                const expiryInput = document.getElementById('expiry-date');
+                
+                // Format card number
+                cardNumberInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\s/g, '');
+                    let formattedValue = value.replace(/(.{4})/g, '$1 ');
+                    e.target.value = formattedValue.trim();
+                });
+                
+                // Format expiry date
+                expiryInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length >= 2) {
+                        value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                    }
+                    e.target.value = value;
+                });
+            }
+            
+            function validateForm() {
+                const form = document.getElementById('payment-form');
+                const inputs = form.querySelectorAll('input[required]');
+                let isValid = true;
+                
+                inputs.forEach(input => {
+                    const value = input.value.trim();
+                    input.classList.remove('is-invalid');
+                    
+                    if (!value) {
+                        input.classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        // Specific validations
+                        if (input.id === 'card-number') {
+                            const cardNumber = value.replace(/\s/g, '');
+                            if (cardNumber.length < 13 || !/^\d+$/.test(cardNumber)) {
+                                input.classList.add('is-invalid');
+                                isValid = false;
+                            }
+                        } else if (input.id === 'expiry-date') {
+                            if (!/^\d{2}\/\d{2}$/.test(value)) {
+                                input.classList.add('is-invalid');
+                                isValid = false;
+                            }
+                        } else if (input.id === 'cvv') {
+                            if (!/^\d{3,4}$/.test(value)) {
+                                input.classList.add('is-invalid');
+                                isValid = false;
+                            }
+                        }
+                    }
+                });
+                
+                return isValid;
+            }
+            
+            function processPayment() {
+                const payButton = document.getElementById('pay-button');
+                const buttonText = document.getElementById('pay-button-text');
+                const buttonSpinner = document.getElementById('pay-button-spinner');
+                
+                // Show loading state
+                payButton.disabled = true;
+                buttonText.textContent = 'Processing...';
+                buttonSpinner.style.display = 'inline-block';
+                
+                const formData = {
+                    bookingReference: document.getElementById('booking-reference').value,
+                    cardNumber: document.getElementById('card-number').value,
+                    expiryDate: document.getElementById('expiry-date').value,
+                    cvv: document.getElementById('cvv').value,
+                    cardholderName: document.getElementById('cardholder-name').value,
+                    amount: parseFloat(document.getElementById('booking-amount').value)
+                };
+                
+                fetch('/api/custom-payment/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showPaymentSuccess(data);
+                    } else {
+                        showPaymentError(data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Payment error:', error);
+                    showPaymentError('Payment processing failed. Please try again.');
+                })
+                .finally(() => {
+                    // Reset button state
+                    payButton.disabled = false;
+                    buttonText.textContent = 'Pay Now';
+                    buttonSpinner.style.display = 'none';
+                });
+            }
+            
+            function showPaymentSuccess(data) {
+                document.getElementById('payment-success').style.display = 'block';
+                document.getElementById('payment-error').style.display = 'none';
+                paymentModal.show();
+            }
+            
+            function showPaymentError(message) {
+                document.getElementById('payment-success').style.display = 'none';
+                document.getElementById('payment-error').style.display = 'block';
+                document.getElementById('error-message').textContent = message;
+                paymentModal.show();
+            }
+            
+            function showError(message) {
+                const summaryDiv = document.getElementById('booking-summary');
+                summaryDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> ${message}
+                    </div>
+                    <a href="/dashboard" class="btn btn-primary">Return to Dashboard</a>
+                `;
+            }
+        </script>
+    </th:block>
+</body>
+</html>

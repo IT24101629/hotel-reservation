@@ -218,7 +218,7 @@ public class PageController {
                 System.err.println("Payment: No bookingId provided in request");
             }
 
-            // Add base URL for PayHere endpoints
+            // Add base URL for payment endpoints
             String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
             model.addAttribute("baseUrl", baseUrl);
             System.err.println("Payment: Added baseUrl to model: " + baseUrl);
@@ -351,6 +351,14 @@ public class PageController {
         return "payment-cancel";
     }
 
+
+    // Custom payment page
+    @GetMapping("/custom-payment")
+    public String customPayment(Model model) {
+        System.out.println("Custom Payment: Processing request");
+        return "custom-payment";
+    }
+
     // Terms and conditions page
     @GetMapping("/terms")
     public String terms() {
@@ -386,9 +394,4 @@ public class PageController {
         return "error";
     }
     
-    // PayHere test page
-    @GetMapping("/payhere-test")
-    public String payhereTest() {
-        return "payhere-test";
-    }
 }

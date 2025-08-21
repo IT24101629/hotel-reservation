@@ -150,6 +150,14 @@ public class BookingService {
         return convertToResponseDTO(booking);
     }
 
+    /**
+     * Get booking entity by ID for payment processing
+     */
+    public Booking getBookingEntityById(Long id) {
+        return bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + id));
+    }
+
     public List<BookingResponseDTO> getBookingsByCustomer(Long customerId) {
         return bookingRepository.findByCustomer_CustomerId(customerId)
                 .stream()
