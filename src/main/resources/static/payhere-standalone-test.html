@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PayHere Standalone Test</title>
+</head>
+<body>
+    <h1>PayHere Direct Test</h1>
+    
+    <div>
+        <p><strong>Test Parameters:</strong></p>
+        <ul>
+            <li>Merchant ID: 1221688</li>
+            <li>Order ID: STANDALONE-12345</li>
+            <li>Amount: 12.00 USD</li>
+            <li>Currency: USD</li>
+        </ul>
+        <p><em>This will submit directly to PayHere with a manually calculated hash.</em></p>
+    </div>
+    
+    <form id="payhere-direct-form" method="post" action="https://sandbox.payhere.lk/pay/checkout">
+        <!-- PayHere Required Fields -->
+        <input type="hidden" name="merchant_id" value="1221688">
+        <input type="hidden" name="return_url" value="http://localhost:8080/payment/success">
+        <input type="hidden" name="cancel_url" value="http://localhost:8080/payment/cancel">
+        <input type="hidden" name="notify_url" value="http://localhost:8080/api/payment/payhere/notify">
+        
+        <!-- Order Details -->
+        <input type="hidden" name="order_id" value="STANDALONE-12345">
+        <input type="hidden" name="items" value="Direct Test Hotel Booking">
+        <input type="hidden" name="currency" value="USD">
+        <input type="hidden" name="amount" value="12.00">
+        
+        <!-- Customer Details -->
+        <input type="hidden" name="first_name" value="Test">
+        <input type="hidden" name="last_name" value="Customer">
+        <input type="hidden" name="email" value="test@example.com">
+        <input type="hidden" name="phone" value="+94771234567">
+        <input type="hidden" name="address" value="Test Address">
+        <input type="hidden" name="city" value="Colombo">
+        <input type="hidden" name="country" value="Sri Lanka">
+        
+        <!-- Hash - calculated manually -->
+        <input type="hidden" name="hash" id="hash" value="">
+        
+        <button type="button" onclick="calculateHashAndSubmit()">Calculate Hash & Test PayHere Payment</button>
+        <div id="status" style="margin-top: 10px; font-weight: bold;"></div>
+    </form>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script>
+        function calculateHashAndSubmit() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = 'Calculating hash manually...';
+            statusDiv.style.color = 'blue';
+            
+            // PayHere hash calculation
+            // Format: MD5(merchant_id + order_id + amount + currency + md5(merchant_secret))
+            const merchantId = '1221688';
+            const orderId = 'STANDALONE-12345';
+            const amount = '12.00';
+            const currency = 'USD';
+            const merchantSecret = 'NDEwMjkxMjMxNTMxODkxNzQzNjMyNTI5MjgxMDkzMzgwMjY4MjY0MQ==';
+            
+            console.log('Calculating hash with:');
+            console.log('Merchant ID:', merchantId);
+            console.log('Order ID:', orderId);
+            console.log('Amount:', amount);
+            console.log('Currency:', currency);
+            console.log('Merchant Secret:', merchantSecret);
+            
+            // Calculate MD5 of merchant secret
+            const merchantSecretHash = CryptoJS.MD5(merchantSecret).toString().toLowerCase();
+            console.log('Merchant Secret Hash:', merchantSecretHash);
+            
+            // Calculate final hash
+            const hashString = merchantId + orderId + amount + currency + merchantSecretHash;
+            console.log('Hash String:', hashString);
+            
+            const finalHash = CryptoJS.MD5(hashString).toString().toUpperCase();
+            console.log('Final Hash:', finalHash);
+            
+            document.getElementById('hash').value = finalHash;
+            
+            statusDiv.textContent = 'Hash calculated! Redirecting to PayHere...';
+            statusDiv.style.color = 'green';
+            
+            // Submit the form to PayHere
+            setTimeout(() => {
+                document.getElementById('payhere-direct-form').submit();
+            }, 1000);
+        }
+        
+        console.log('PayHere standalone test ready');
+    </script>
+</body>
+</html>

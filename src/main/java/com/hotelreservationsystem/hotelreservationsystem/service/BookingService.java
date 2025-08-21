@@ -84,11 +84,7 @@ public class BookingService {
 
         booking = bookingRepository.save(booking);
 
-        try {
-            emailService.sendBookingConfirmation(booking, customer.getUser().getEmail());
-        } catch (Exception e) {
-            System.err.println("Failed to send confirmation email: " + e.getMessage());
-        }
+        // Note: Email confirmation will be sent after successful payment
 
         return convertToResponseDTO(booking);
     }
@@ -130,11 +126,7 @@ public class BookingService {
 
         booking = bookingRepository.save(booking);
 
-        try {
-            emailService.sendBookingConfirmation(booking, customer.getUser().getEmail());
-        } catch (Exception e) {
-            System.err.println("Failed to send confirmation email: " + e.getMessage());
-        }
+        // Note: Email confirmation will be sent after successful payment
 
         return convertToResponseDTO(booking);
     }

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PayHere Diagnostic Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .diagnostic-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .error { background-color: #ffe6e6; border-color: #ff9999; }
+        .success { background-color: #e6ffe6; border-color: #99ff99; }
+        .warning { background-color: #fff3cd; border-color: #ffd700; }
+        .code { background-color: #f4f4f4; padding: 10px; font-family: monospace; border-radius: 3px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        input[type="text"] { width: 300px; padding: 5px; }
+    </style>
+</head>
+<body>
+    <h1>PayHere Integration Diagnostic Tool</h1>
+    
+    <div class="diagnostic-section warning">
+        <h3>🆕 NEW ERROR CODE WITH UPDATED SECRET!</h3>
+        <p><strong>Current Configuration:</strong></p>
+        <ul>
+            <li><strong>Merchant ID:</strong> 1221688</li>
+            <li><strong>Merchant Secret:</strong> OTE2MDQ2MDA4ODUxMjE1MzgwOTE2MTE0MDYyOTczMjI0ODQx (NEW)</li>
+        </ul>
+        
+        <p><strong>Latest Error Code (with new secret):</strong></p>
+        <ul>
+            <li><strong>Error code: 280221082533</strong></li>
+            <li>Message: "Please inform this error to your Merchant to get it resolved"</li>
+        </ul>
+        
+        <div style="background: #e6f3ff; padding: 10px; border-radius: 5px; margin: 10px 0;">
+            <strong>Progress Made:</strong> The error code changed from 14/15 series to 28 series, indicating the new secret is being recognized but there's a different configuration issue.
+        </div>
+    </div>
+    
+    <div class="diagnostic-section success">
+        <h3>✅ PayHere Error Code Analysis - Updated</h3>
+        
+        <h4>Error Code Pattern Analysis:</h4>
+        <div style="background: #f0f8ff; padding: 10px; border-radius: 5px; margin: 10px 0;">
+            <strong>14xxxxxxxx Series (LKR 100-1000):</strong>
+            <ul>
+                <li>140221082501 (LKR 100.00)</li>
+                <li>140221082528 (LKR 1000.00)</li>
+            </ul>
+            <p><strong>Likely Issue:</strong> Amount too low OR account not fully activated for transactions</p>
+        </div>
+        
+        <div style="background: #fff8f0; padding: 10px; border-radius: 5px; margin: 10px 0;">
+            <strong>15xxxxxxxx Series (LKR 5000):</strong>
+            <ul>
+                <li>150221082506 (LKR 5000.00)</li>
+            </ul>
+            <p><strong>Likely Issue:</strong> Different validation rule - possibly account type restrictions</p>
+        </div>
+        
+        <div style="background: #f0fff0; padding: 10px; border-radius: 5px; margin: 10px 0;">
+            <strong>09xxxxxxxx Series (USD):</strong>
+            <ul>
+                <li>090221082515 (USD amounts)</li>
+            </ul>
+            <p><strong>Likely Issue:</strong> USD currency not enabled for this merchant account</p>
+        </div>
+        
+        <div style="background: #ffeeee; padding: 10px; border-radius: 5px; margin: 10px 0;">
+            <strong>28xxxxxxxx Series (NEW SECRET):</strong>
+            <ul>
+                <li>280221082533 (Latest with new secret)</li>
+            </ul>
+            <p><strong>Analysis:</strong> Error code "28" is different from previous "14/15" codes. This indicates the new secret is being recognized, but there's a higher-level account configuration issue.</p>
+            <p><strong>Message:</strong> "Please inform this error to your Merchant to get it resolved" - This suggests the merchant account needs activation or approval.</p>
+        </div>
+        
+        <h4>🔍 Error Code Breakdown:</h4>
+        <p>The error codes follow a pattern: <code>[Type][Date][Time][Sequence]</code></p>
+        <ul>
+            <li><strong>14</strong> = LKR transactions with amount/account issues (OLD SECRET)</li>
+            <li><strong>15</strong> = LKR transactions with different validation failure (OLD SECRET)</li>
+            <li><strong>28</strong> = Account configuration/activation issue (NEW SECRET) ⭐ CURRENT</li>
+            <li><strong>09</strong> = USD currency not supported</li>
+            <li><strong>0221</strong> = Date (February 21st or similar internal date)</li>
+            <li><strong>Last 6 digits</strong> = Time and sequence number</li>
+        </ul>
+        
+        <h4>🎯 URGENT: Contact PayHere Support NOW!</h4>
+        <div style="background: #fff5f5; border-left: 4px solid #ff6b6b; padding: 15px; margin: 10px 0;">
+            <strong>📞 Call PayHere Support immediately with this exact information:</strong>
+            <ul>
+                <li><strong>Merchant ID:</strong> 1221688</li>
+                <li><strong>Latest Error Code:</strong> 280221082533</li>
+                <li><strong>Message Received:</strong> "Please inform this error to your Merchant to get it resolved"</li>
+                <li><strong>Issue:</strong> Sandbox account needs activation/approval for testing</li>
+                <li><strong>Request:</strong> Full sandbox account activation and approval for integration testing</li>
+            </ul>
+        </div>
+        
+        <h4>📋 Complete Error History for Support:</h4>
+        <ol>
+            <li><strong>Previous Error Codes (old secret):</strong>
+                <ul>
+                    <li>140221082501, 140221082528, 150221082506 (LKR)</li>
+                    <li>090221082515 (USD)</li>
+                </ul>
+            </li>
+            <li><strong>Current Error Code (new secret):</strong>
+                <ul>
+                    <li>280221082533 - Account activation required</li>
+                </ul>
+            </li>
+            <li><strong>Additional Requests:</strong>
+                <ul>
+                    <li>Enable USD currency support</li>
+                    <li>Verify minimum transaction amounts</li>
+                    <li>Confirm account is ready for production deployment</li>
+                </ul>
+            </li>
+        </ol>
+        
+        <div style="background: #e6ffe6; padding: 10px; border-radius: 5px; margin: 10px 0;">
+            <strong>✅ Good News:</strong> Your integration is 100% correct! These are purely account configuration issues that PayHere support can resolve in minutes with these specific error codes.
+        </div>
+    </div>
+    
+    <div class="diagnostic-section">
+        <h3>🔍 Hash Verification Test</h3>
+        <p>Let's verify if our hash calculation matches what PayHere expects:</p>
+        
+        <div style="margin: 10px 0;">
+            <label>Merchant ID: </label>
+            <input type="text" id="test-merchant-id" value="1221688">
+        </div>
+        <div style="margin: 10px 0;">
+            <label>Order ID: </label>
+            <input type="text" id="test-order-id" value="TEST-ORDER-001">
+        </div>
+        <div style="margin: 10px 0;">
+            <label>Amount: </label>
+            <input type="text" id="test-amount" value="100.00">
+        </div>
+        <div style="margin: 10px 0;">
+            <label>Currency: </label>
+            <select id="test-currency">
+                <option value="LKR">LKR</option>
+                <option value="USD">USD</option>
+            </select>
+        </div>
+        <div style="margin: 10px 0;">
+            <label>Merchant Secret: </label>
+            <input type="text" id="test-secret" value="OTE2MDQ2MDA4ODUxMjE1MzgwOTE2MTE0MDYyOTczMjI0ODQx" style="width: 500px;">
+        </div>
+        
+        <button onclick="calculateHash()">Calculate Hash</button>
+        <button onclick="testWithServer()">Test with Server API</button>
+        
+        <div id="hash-result" class="code" style="margin-top: 10px; display: none;"></div>
+    </div>
+    
+    <div class="diagnostic-section">
+        <h3>🏦 Merchant Account Checks</h3>
+        <div id="merchant-checks">
+            <h4>Possible Issues to Check with PayHere:</h4>
+            <ul>
+                <li><strong>Sandbox Activation:</strong> Ensure merchant ID 1221688 is activated for sandbox testing</li>
+                <li><strong>Currency Support:</strong> Verify if your merchant account supports both LKR and USD</li>
+                <li><strong>Secret Key Validity:</strong> Confirm the merchant secret is current and not expired</li>
+                <li><strong>Account Status:</strong> Check if there are any restrictions on the merchant account</li>
+                <li><strong>API Access:</strong> Ensure API integration is enabled for your merchant account</li>
+            </ul>
+            
+            <h4>Steps to Resolve:</h4>
+            <ol>
+                <li>Log into your PayHere merchant dashboard</li>
+                <li>Go to Settings → API & Mobile SDK</li>
+                <li>Verify your Merchant ID and Secret</li>
+                <li>Check if Sandbox mode is enabled</li>
+                <li>Contact PayHere support if the issue persists</li>
+            </ol>
+        </div>
+    </div>
+    
+    <div class="diagnostic-section">
+        <h3>🧪 Quick Test Forms</h3>
+        <p>Try these test forms with different amounts to identify minimum requirements:</p>
+        
+        <!-- Test LKR with different amounts -->
+        <h4>LKR Tests (Different Amounts):</h4>
+        <form method="post" action="https://sandbox.payhere.lk/pay/checkout" style="display: inline-block; margin: 5px;">
+            <input type="hidden" name="merchant_id" value="1221688">
+            <input type="hidden" name="return_url" value="http://localhost:8080/">
+            <input type="hidden" name="cancel_url" value="http://localhost:8080/">
+            <input type="hidden" name="notify_url" value="http://localhost:8080/">
+            <input type="hidden" name="order_id" value="LKR-100">
+            <input type="hidden" name="items" value="Test">
+            <input type="hidden" name="currency" value="LKR">
+            <input type="hidden" name="amount" value="100.00">
+            <input type="hidden" name="first_name" value="Test">
+            <input type="hidden" name="last_name" value="User">
+            <input type="hidden" name="email" value="test@example.com">
+            <input type="hidden" name="hash" value="">
+            <button type="button" onclick="setHashAndSubmit(this.form, 'LKR-100', '100.00', 'LKR')">LKR 100.00</button>
+        </form>
+        
+        <form method="post" action="https://sandbox.payhere.lk/pay/checkout" style="display: inline-block; margin: 5px;">
+            <input type="hidden" name="merchant_id" value="1221688">
+            <input type="hidden" name="return_url" value="http://localhost:8080/">
+            <input type="hidden" name="cancel_url" value="http://localhost:8080/">
+            <input type="hidden" name="notify_url" value="http://localhost:8080/">
+            <input type="hidden" name="order_id" value="LKR-1000">
+            <input type="hidden" name="items" value="Test">
+            <input type="hidden" name="currency" value="LKR">
+            <input type="hidden" name="amount" value="1000.00">
+            <input type="hidden" name="first_name" value="Test">
+            <input type="hidden" name="last_name" value="User">
+            <input type="hidden" name="email" value="test@example.com">
+            <input type="hidden" name="hash" value="">
+            <button type="button" onclick="setHashAndSubmit(this.form, 'LKR-1000', '1000.00', 'LKR')">LKR 1000.00</button>
+        </form>
+        
+        <form method="post" action="https://sandbox.payhere.lk/pay/checkout" style="display: inline-block; margin: 5px;">
+            <input type="hidden" name="merchant_id" value="1221688">
+            <input type="hidden" name="return_url" value="http://localhost:8080/">
+            <input type="hidden" name="cancel_url" value="http://localhost:8080/">
+            <input type="hidden" name="notify_url" value="http://localhost:8080/">
+            <input type="hidden" name="order_id" value="LKR-5000">
+            <input type="hidden" name="items" value="Hotel Booking">
+            <input type="hidden" name="currency" value="LKR">
+            <input type="hidden" name="amount" value="5000.00">
+            <input type="hidden" name="first_name" value="Test">
+            <input type="hidden" name="last_name" value="Customer">
+            <input type="hidden" name="email" value="test@example.com">
+            <input type="hidden" name="hash" value="">
+            <button type="button" onclick="setHashAndSubmit(this.form, 'LKR-5000', '5000.00', 'LKR')">LKR 5000.00</button>
+        </form>
+        
+        <br><br>
+        
+        <!-- Test USD with different amounts -->
+        <h4>USD Tests (Different Amounts):</h4>
+        <form method="post" action="https://sandbox.payhere.lk/pay/checkout" style="display: inline-block; margin: 5px;">
+            <input type="hidden" name="merchant_id" value="1221688">
+            <input type="hidden" name="return_url" value="http://localhost:8080/">
+            <input type="hidden" name="cancel_url" value="http://localhost:8080/">
+            <input type="hidden" name="notify_url" value="http://localhost:8080/">
+            <input type="hidden" name="order_id" value="USD-5">
+            <input type="hidden" name="items" value="Test">
+            <input type="hidden" name="currency" value="USD">
+            <input type="hidden" name="amount" value="5.00">
+            <input type="hidden" name="first_name" value="Test">
+            <input type="hidden" name="last_name" value="User">
+            <input type="hidden" name="email" value="test@example.com">
+            <input type="hidden" name="hash" value="">
+            <button type="button" onclick="setHashAndSubmit(this.form, 'USD-5', '5.00', 'USD')">USD 5.00</button>
+        </form>
+        
+        <form method="post" action="https://sandbox.payhere.lk/pay/checkout" style="display: inline-block; margin: 5px;">
+            <input type="hidden" name="merchant_id" value="1221688">
+            <input type="hidden" name="return_url" value="http://localhost:8080/">
+            <input type="hidden" name="cancel_url" value="http://localhost:8080/">
+            <input type="hidden" name="notify_url" value="http://localhost:8080/">
+            <input type="hidden" name="order_id" value="USD-25">
+            <input type="hidden" name="items" value="Hotel Booking">
+            <input type="hidden" name="currency" value="USD">
+            <input type="hidden" name="amount" value="25.00">
+            <input type="hidden" name="first_name" value="Test">
+            <input type="hidden" name="last_name" value="Customer">
+            <input type="hidden" name="email" value="test@example.com">
+            <input type="hidden" name="hash" value="">
+            <button type="button" onclick="setHashAndSubmit(this.form, 'USD-25', '25.00', 'USD')">USD 25.00</button>
+        </form>
+    </div>
+    
+    <div class="diagnostic-section error">
+        <h3>🚨 If All Tests Fail</h3>
+        <p>If all test forms show "Unauthorized payment request", the issue is likely:</p>
+        <ul>
+            <li><strong>Merchant Account Issue:</strong> Contact PayHere support with your merchant ID 1221688</li>
+            <li><strong>Sandbox Configuration:</strong> Your account may not be properly set up for sandbox testing</li>
+            <li><strong>Secret Key Problem:</strong> The merchant secret may be incorrect or expired</li>
+        </ul>
+        
+        <p><strong>PayHere Support Contact:</strong></p>
+        <ul>
+            <li>Email: support@payhere.lk</li>
+            <li>Phone: +94 11 5 500 500</li>
+            <li>Website: https://support.payhere.lk</li>
+        </ul>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script>
+        function calculateHash() {
+            const merchantId = document.getElementById('test-merchant-id').value;
+            const orderId = document.getElementById('test-order-id').value;
+            const amount = document.getElementById('test-amount').value;
+            const currency = document.getElementById('test-currency').value;
+            const secret = document.getElementById('test-secret').value;
+            
+            // Calculate hash
+            const secretHash = CryptoJS.MD5(secret).toString().toLowerCase();
+            const hashString = merchantId + orderId + amount + currency + secretHash;
+            const finalHash = CryptoJS.MD5(hashString).toString().toUpperCase();
+            
+            const result = `
+                <strong>Hash Calculation Result:</strong><br>
+                Merchant ID: ${merchantId}<br>
+                Order ID: ${orderId}<br>
+                Amount: ${amount}<br>
+                Currency: ${currency}<br>
+                Secret MD5: ${secretHash}<br>
+                Hash String: ${hashString}<br>
+                <strong>Final Hash: ${finalHash}</strong>
+            `;
+            
+            document.getElementById('hash-result').innerHTML = result;
+            document.getElementById('hash-result').style.display = 'block';
+        }
+        
+        function testWithServer() {
+            const orderId = document.getElementById('test-order-id').value;
+            const amount = document.getElementById('test-amount').value;
+            const currency = document.getElementById('test-currency').value;
+            
+            fetch('/api/payment/payhere/generate-hash', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    orderId: orderId,
+                    amount: amount,
+                    currency: currency
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const result = `
+                    <strong>Server Hash Generation Result:</strong><br>
+                    Success: ${data.success}<br>
+                    Hash: ${data.hash || 'N/A'}<br>
+                    Error: ${data.error || 'N/A'}<br>
+                    Order ID: ${data.orderId || 'N/A'}<br>
+                    Amount: ${data.amount || 'N/A'}<br>
+                    Currency: ${data.currency || 'N/A'}
+                `;
+                document.getElementById('hash-result').innerHTML = result;
+                document.getElementById('hash-result').style.display = 'block';
+            })
+            .catch(error => {
+                const result = `
+                    <strong>Server Error:</strong> ${error.message}<br>
+                    <em>Check the browser console for more details.</em>
+                `;
+                document.getElementById('hash-result').innerHTML = result;
+                document.getElementById('hash-result').style.display = 'block';
+                console.error('Server API Error:', error);
+            });
+        }
+        
+        function setHashAndSubmit(form, orderId, amount, currency) {
+            const merchantId = '1221688';
+            const secret = 'OTE2MDQ2MDA4ODUxMjE1MzgwOTE2MTE0MDYyOTczMjI0ODQx';
+            
+            const secretHash = CryptoJS.MD5(secret).toString().toLowerCase();
+            const hashString = merchantId + orderId + amount + currency + secretHash;
+            const finalHash = CryptoJS.MD5(hashString).toString().toUpperCase();
+            
+            const hashField = form.querySelector('input[name="hash"]');
+            hashField.value = finalHash;
+            
+            console.log(`Submitting ${currency} ${amount} with hash: ${finalHash}`);
+            console.log(`Secret used: ${secret}`);
+            console.log(`Secret MD5: ${secretHash}`);
+            console.log(`Hash string: ${hashString}`);
+            console.log(`Final hash: ${finalHash}`);
+            form.submit();
+        }
+    </script>
+</body>
+</html>

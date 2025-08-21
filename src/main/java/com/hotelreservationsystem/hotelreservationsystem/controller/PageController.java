@@ -385,4 +385,10 @@ public class PageController {
         System.out.println("Error: Processing request");
         return "error";
     }
+    
+    // PayHere test page
+    @GetMapping("/payhere-test")
+    public String payhereTest() {
+        return "payhere-test";
+    }
 }
