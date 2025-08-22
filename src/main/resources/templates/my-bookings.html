@@ -97,34 +97,29 @@
 <th:block th:fragment="additional-js">
     <script>
         function cancelBooking(bookingId) {
-            const reason = prompt('Please provide a reason for cancellation (optional):', 'Cancelled by customer');
-            
-            if (reason !== null) { // User didn't click cancel
-                if (confirm('Are you sure you want to cancel this booking? This action cannot be undone and a cancellation email will be sent.')) {
-                    fetch('/api/bookings/' + bookingId + '/cancel', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
-                        },
-                        body: JSON.stringify({
-                            reason: reason || 'Cancelled by customer'
-                        })
+            if (confirm('Are you sure you want to remove this booking? This action cannot be undone and a cancellation email will be sent.')) {
+                fetch('/api/bookings/' + bookingId + '/cancel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+                    },
+                    body: JSON.stringify({
+                        reason: 'Cancelled by customer'
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('✅ Booking cancelled and removed successfully! A confirmation email has been sent.');
-                            window.location.href = '/dashboard';
-                        } else {
-                            alert('❌ Error cancelling booking: ' + (data.error || 'Unknown error'));
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('❌ Error cancelling booking. Please try again.');
-                    });
-                }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = '/dashboard';
+                    } else {
+                        alert('❌ Error cancelling booking: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('❌ Error cancelling booking. Please try again.');
+                });
             }
         }
     </script>
