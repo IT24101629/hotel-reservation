@@ -102,7 +102,10 @@
 
 <!-- Include additional JavaScript fragments if they exist -->
 <th:block th:replace="~{rooms :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'rooms')}"></th:block>
-<th:block th:replace="~{booking :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'booking')}"></th:block>
+<th:block th:replace="~{booking :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'booking') and !#strings.contains(#httpServletRequest.requestURI, '/booking/')}"></th:block>
+<th:block th:replace="~{booking-detail :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/booking/')}"></th:block>
+<th:block th:replace="~{booking-edit :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/edit')}"></th:block>
+<th:block th:replace="~{my-bookings :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'my-bookings')}"></th:block>
 <th:block th:replace="~{payment :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'payment')}"></th:block>
 </body>
 </html>

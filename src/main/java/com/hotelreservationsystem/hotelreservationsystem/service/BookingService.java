@@ -274,7 +274,7 @@ public class BookingService {
     }
 
     public void cancelBookingWithEmail(Long id, String reason) {
-        System.out.println("❌ Starting booking cancellation process for ID: " + id);
+        System.out.println("❌ Starting booking cancellation and deletion process for ID: " + id);
         
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + id));
@@ -287,25 +287,19 @@ public class BookingService {
             throw new RuntimeException("Cannot cancel a completed booking");
         }
 
-        // Update booking status
-        booking.setBookingStatus(BookingStatus.CANCELLED);
-        booking.setCancelledAt(LocalDateTime.now());
-        booking.setCancellationReason(reason);
-        booking.setPaymentStatus(PaymentStatus.REFUNDED);
-
-        // Save to database
-        Booking savedBooking = bookingRepository.save(booking);
-        System.out.println("✅ Booking cancelled in database: " + savedBooking.getBookingReference());
-
-        // Send cancellation email
+        // Send cancellation email before deleting the booking
         try {
-            emailService.sendBookingCancellationWithDetails(savedBooking, savedBooking.getCustomer().getUser().getEmail(), reason);
+            emailService.sendBookingCancellationWithDetails(booking, booking.getCustomer().getUser().getEmail(), reason);
             System.out.println("📧 Cancellation email sent successfully");
         } catch (Exception e) {
             System.err.println("❌ Failed to send cancellation email: " + e.getMessage());
             e.printStackTrace();
-            // Don't throw exception - cancellation was successful, just email failed
+            // Continue with deletion even if email fails
         }
+
+        // Delete the booking from database completely
+        bookingRepository.deleteById(id);
+        System.out.println("🗑️ Booking completely removed from database: " + booking.getBookingReference());
     }
 
     public boolean isRoomAvailable(Long roomId, LocalDate checkIn, LocalDate checkOut) {

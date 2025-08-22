@@ -214,8 +214,8 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            alert('✅ Booking cancelled successfully! A confirmation email has been sent.');
-                            window.location.href = '/my-bookings';
+                            alert('✅ Booking cancelled and removed successfully! A confirmation email has been sent.');
+                            window.location.href = '/dashboard';
                         } else {
                             alert('❌ Error cancelling booking: ' + (data.error || 'Unknown error'));
                         }

@@ -114,13 +114,7 @@
 
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary" onclick="return updateBooking();">
-                                ✅ Update Booking (API)
-                            </button>
-                            <button type="button" class="btn btn-success" onclick="updateBooking();" style="margin-left: 0.5rem;">
-                                🚀 Update Now (Direct)
-                            </button>
-                            <button type="button" class="btn btn-info" onclick="testAPI();" style="margin-left: 0.5rem;">
-                                🧪 Test API
+                                ✅ Update Booking
                             </button>
                             <a th:href="@{'/booking/' + ${booking.bookingId}}" class="btn btn-secondary" style="margin-left: 0.5rem;">
                                 ❌ Cancel Changes
@@ -199,48 +193,6 @@
         // Debug information
         console.log('🔄 Booking edit page loaded');
         console.log('📝 Booking ID from Thymeleaf:', /*[[${booking.bookingId}]]*/ 0);
-        
-        // Test function to check API connectivity
-        function testAPI() {
-            const bookingId = /*[[${booking.bookingId}]]*/ 0;
-            console.log('🧪 Testing API connectivity...');
-            
-            // Test simple endpoint first
-            fetch(`/api/bookings/${bookingId}/test`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                console.log('🧪 Test endpoint response:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('🧪 Test endpoint data:', data);
-                alert('✅ Test endpoint working! Message: ' + data.message);
-                
-                // Now test the main booking endpoint
-                return fetch(`/api/bookings/${bookingId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-            })
-            .then(response => {
-                console.log('🧪 Main API response:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('🧪 Main API data:', data);
-                alert('✅ Main API also working! Booking: ' + data.bookingReference);
-            })
-            .catch(error => {
-                console.error('🧪 API test failed:', error);
-                alert('❌ API test failed: ' + error.message);
-            });
-        }
         
         function updateBooking() {
             console.log('🔄 Update function called');
