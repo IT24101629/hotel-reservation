@@ -86,6 +86,12 @@ public class Booking {
     @Column(name = "cancellation_reason", length = 500)
     private String cancellationReason;
     
+    @Column(name = "checked_in_at")
+    private LocalDateTime checkedInAt;
+    
+    @Column(name = "checked_out_at")
+    private LocalDateTime checkedOutAt;
+    
     @Column(name = "qr_code_path", length = 500)
     private String qrCodePath;
     
@@ -257,6 +263,22 @@ public class Booking {
     
     public void setCancellationReason(String cancellationReason) {
         this.cancellationReason = cancellationReason;
+    }
+    
+    public LocalDateTime getCheckedInAt() {
+        return checkedInAt;
+    }
+    
+    public void setCheckedInAt(LocalDateTime checkedInAt) {
+        this.checkedInAt = checkedInAt;
+    }
+    
+    public LocalDateTime getCheckedOutAt() {
+        return checkedOutAt;
+    }
+    
+    public void setCheckedOutAt(LocalDateTime checkedOutAt) {
+        this.checkedOutAt = checkedOutAt;
     }
     
     public String getQrCodePath() {

@@ -307,6 +307,27 @@ public class BookingService {
         return conflictingBookings == 0;
     }
 
+    public BookingResponseDTO updateBookingStatus(Long id, BookingStatus status) {
+        System.out.println("🔄 Updating booking status for ID: " + id + " to: " + status);
+        
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + id));
+        
+        booking.setBookingStatus(status);
+        booking.setUpdatedAt(LocalDateTime.now());
+        
+        if (status == BookingStatus.CHECKED_IN) {
+            booking.setCheckedInAt(LocalDateTime.now());
+        } else if (status == BookingStatus.CHECKED_OUT) {
+            booking.setCheckedOutAt(LocalDateTime.now());
+        }
+        
+        Booking updatedBooking = bookingRepository.save(booking);
+        System.out.println("✅ Booking status updated: " + booking.getBookingReference());
+        
+        return convertToResponseDTO(updatedBooking);
+    }
+
     private void validateBookingRequest(BookingRequestDTO request) {
         if (request.getCheckInDate().isBefore(LocalDate.now())) {
             throw new RuntimeException("Check-in date cannot be in the past");

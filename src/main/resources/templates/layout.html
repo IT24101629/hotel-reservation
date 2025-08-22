@@ -101,11 +101,12 @@
 <script src="/js/main.js"></script>
 
 <!-- Include additional JavaScript fragments if they exist -->
-<th:block th:replace="~{rooms :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'rooms')}"></th:block>
-<th:block th:replace="~{booking :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'booking') and !#strings.contains(#httpServletRequest.requestURI, '/booking/')}"></th:block>
-<th:block th:replace="~{booking-detail :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/booking/')}"></th:block>
-<th:block th:replace="~{booking-edit :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/edit')}"></th:block>
-<th:block th:replace="~{my-bookings :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'my-bookings')}"></th:block>
-<th:block th:replace="~{payment :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'payment')}"></th:block>
+<th:block th:replace="~{receptionist-dashboard :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/receptionist/dashboard')}"></th:block>
+<th:block th:replace="~{rooms :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'rooms') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/')}"></th:block>
+<th:block th:replace="~{booking :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/booking') and !#strings.contains(#httpServletRequest.requestURI, '/booking/') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/')}"></th:block>
+<th:block th:replace="~{booking-detail :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/booking/') and !#strings.contains(#httpServletRequest.requestURI, '/edit') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/')}"></th:block>
+<th:block th:replace="~{booking-edit :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/booking/') and #strings.contains(#httpServletRequest.requestURI, '/edit') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/')}"></th:block>
+<th:block th:replace="~{my-bookings :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'my-bookings') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/')}"></th:block>
+<th:block th:replace="~{payment :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'payment') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/')}"></th:block>
 </body>
 </html>
