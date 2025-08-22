@@ -351,6 +351,110 @@ public class EmailService {
         );
     }
     
+    public void sendBookingCancellationWithDetails(Booking booking, String customerEmail, String reason) {
+        try {
+            System.out.println("📧 Sending enhanced cancellation email to: " + customerEmail);
+            
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            
+            helper.setTo(customerEmail);
+            helper.setSubject("❌ Booking Cancelled - " + booking.getBookingReference());
+            helper.setFrom("goldpalmhotelsliit@gmail.com");
+            helper.setText(createBookingCancellationHtml(booking, reason), true);
+            
+            mailSender.send(mimeMessage);
+            System.out.println("✅ Booking cancellation email sent to: " + customerEmail);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error sending booking cancellation email: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private String createBookingCancellationHtml(Booking booking, String reason) {
+        return String.format(
+            "<!DOCTYPE html>" +
+            "<html>" +
+            "<head>" +
+            "    <meta charset='UTF-8'>" +
+            "    <style>" +
+            "        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
+            "        .container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
+            "        .header { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }" +
+            "        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }" +
+            "        .cancellation-notice { background: #f8d7da; color: #721c24; padding: 20px; margin: 20px 0; border-radius: 8px; border: 1px solid #f5c6cb; text-align: center; }" +
+            "        .booking-details { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #e74c3c; }" +
+            "        .detail-table { width: 100%; border-collapse: collapse; }" +
+            "        .detail-row { margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }" +
+            "        .label { font-weight: bold; color: #2c3e50; }" +
+            "        .value { color: #34495e; }" +
+            "        .refund-info { background: #d1ecf1; color: #0c5460; padding: 20px; margin: 20px 0; border-radius: 8px; border: 1px solid #bee5eb; }" +
+            "        .footer { text-align: center; margin: 30px 0; color: #7f8c8d; }" +
+            "    </style>" +
+            "</head>" +
+            "<body>" +
+            "    <div class='container'>" +
+            "        <div class='header'>" +
+            "            <h1>❌ Booking Cancelled</h1>" +
+            "            <p>Your reservation has been successfully cancelled</p>" +
+            "        </div>" +
+            "        <div class='content'>" +
+            "            <div class='cancellation-notice'>" +
+            "                <h2>🚫 Cancellation Confirmed</h2>" +
+            "                <p>We have processed your cancellation request. Your booking has been cancelled and removed from our system.</p>" +
+            "            </div>" +
+            "            " +
+            "            <div class='booking-details'>" +
+            "                <h3>📋 Cancelled Booking Details</h3>" +
+            "                <table class='detail-table' width='100%' cellpadding='8' cellspacing='0'>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>🎫 Booking Reference:</td><td class='value' style='color: #34495e; text-align: right;'>%s</td></tr>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>🏨 Room Number:</td><td class='value' style='color: #34495e; text-align: right;'>%s</td></tr>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>🛏️ Room Type:</td><td class='value' style='color: #34495e; text-align: right;'>%s</td></tr>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>📅 Original Check-in:</td><td class='value' style='color: #34495e; text-align: right;'>%s</td></tr>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>📅 Original Check-out:</td><td class='value' style='color: #34495e; text-align: right;'>%s</td></tr>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>👥 Number of Guests:</td><td class='value' style='color: #34495e; text-align: right;'>%d</td></tr>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>❌ Cancellation Date:</td><td class='value' style='color: #34495e; text-align: right;'>%s</td></tr>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>📝 Cancellation Reason:</td><td class='value' style='color: #34495e; text-align: right;'>%s</td></tr>" +
+            "                    <tr class='detail-row'><td class='label' style='font-weight: bold; color: #2c3e50; width: 50%;'>💰 Original Amount:</td><td class='value' style='color: #34495e; text-align: right;'>LKR %.2f</td></tr>" +
+            "                </table>" +
+            "            </div>" +
+            "            " +
+            "            <div class='refund-info'>" +
+            "                <h3>💳 Refund Information</h3>" +
+            "                <p><strong>Refund Status:</strong> Processing</p>" +
+            "                <p><strong>Refund Amount:</strong> LKR %.2f</p>" +
+            "                <p><strong>Processing Time:</strong> 3-5 business days</p>" +
+            "                <p>Your refund will be processed back to your original payment method within 3-5 business days.</p>" +
+            "            </div>" +
+            "            " +
+            "            <div class='footer'>" +
+            "                <p><strong>Need Assistance?</strong></p>" +
+            "                <p>If you have any questions about this cancellation or need help with a new booking, please contact us:</p>" +
+            "                <p>📧 Email: <a href='mailto:support@goldpalmhotel.com'>support@goldpalmhotel.com</a></p>" +
+            "                <p>📞 Phone: +94 11 1234567</p>" +
+            "                <p style='margin-top: 30px;'><em>Thank you for choosing Gold Palm Hotel</em></p>" +
+            "                <p style='font-size: 0.9em; margin-top: 20px; color: #666;'>" +
+            "                    We hope to welcome you again in the future!" +
+            "                </p>" +
+            "            </div>" +
+            "        </div>" +
+            "    </div>" +
+            "</body>" +
+            "</html>",
+            booking.getBookingReference(),
+            booking.getRoom().getRoomNumber(),
+            booking.getRoom().getRoomType().getTypeName(),
+            booking.getCheckInDate(),
+            booking.getCheckOutDate(),
+            booking.getNumberOfGuests(),
+            booking.getCancelledAt() != null ? booking.getCancelledAt().format(java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")) : "Just now",
+            reason != null ? reason : "Not specified",
+            booking.getTotalAmount(),
+            booking.getTotalAmount()
+        );
+    }
+
     private String createBookingCancellationText(Booking booking) {
         return String.format(
             "Dear Guest,\n\n" +

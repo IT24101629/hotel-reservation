@@ -122,18 +122,110 @@ public class BookingController {
         return ResponseEntity.ok(bookings);
     }
 
-    @PostMapping("/{id}/cancel")
-    public ResponseEntity<Map<String, Object>> cancelBooking(@PathVariable Long id,
-                                                              @RequestParam(required = false) String reason) {
+    @GetMapping("/{id}/test")
+    public ResponseEntity<Map<String, Object>> testBookingEndpoint(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Test endpoint working");
+        response.put("bookingId", id);
+        response.put("timestamp", java.time.LocalDateTime.now());
+        System.out.println("🧪 Test endpoint called for booking ID: " + id);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/update")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> updateBookingPost(@PathVariable Long id,
+                                                              @RequestBody Map<String, Object> updateData,
+                                                              Authentication authentication) {
+        return updateBookingInternal(id, updateData, authentication);
+    }
+
+    @PutMapping("/{id}/update")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> updateBooking(@PathVariable Long id,
+                                                              @RequestBody Map<String, Object> updateData,
+                                                              Authentication authentication) {
+        return updateBookingInternal(id, updateData, authentication);
+    }
+
+    private ResponseEntity<Map<String, Object>> updateBookingInternal(@PathVariable Long id,
+                                                              @RequestBody Map<String, Object> updateData,
+                                                              Authentication authentication) {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            bookingService.cancelBooking(id, reason != null ? reason : "Cancelled by customer");
+            System.out.println("🔄 ===== UPDATE BOOKING REQUEST =====");
+            System.out.println("📝 Booking ID: " + id);
+            System.out.println("📝 Update data received: " + updateData);
+            System.out.println("📝 User: " + authentication.getName());
+            
+            // Verify user owns this booking
+            String userEmail = authentication.getName();
+            System.out.println("🔍 Fetching existing booking...");
+            BookingResponseDTO existingBooking = bookingService.getBookingById(id);
+            System.out.println("✅ Existing booking found: " + existingBooking.getBookingReference());
+            
+            if (!existingBooking.getCustomerEmail().equals(userEmail)) {
+                System.out.println("❌ Access denied: booking belongs to " + existingBooking.getCustomerEmail() + ", user is " + userEmail);
+                response.put("success", false);
+                response.put("error", "You can only update your own bookings");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            System.out.println("✅ Access granted, updating booking...");
+            // Call service to update booking
+            BookingResponseDTO updatedBooking = bookingService.updateBookingDetails(id, updateData);
+            System.out.println("✅ Booking updated successfully");
+            
             response.put("success", true);
-            response.put("message", "Booking cancelled successfully");
+            response.put("message", "Booking updated successfully");
+            response.put("booking", updatedBooking);
+            
+            System.out.println("📤 Sending success response");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error updating booking: " + e.getMessage());
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/{id}/cancel")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> cancelBooking(@PathVariable Long id,
+                                                              @RequestBody(required = false) Map<String, String> cancelData,
+                                                              Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            System.out.println("❌ Cancel booking request for ID: " + id);
+            
+            // Verify user owns this booking
+            String userEmail = authentication.getName();
+            BookingResponseDTO existingBooking = bookingService.getBookingById(id);
+            
+            if (!existingBooking.getCustomerEmail().equals(userEmail)) {
+                response.put("success", false);
+                response.put("error", "You can only cancel your own bookings");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            String reason = "Cancelled by customer";
+            if (cancelData != null && cancelData.containsKey("reason")) {
+                reason = cancelData.get("reason");
+            }
+            
+            bookingService.cancelBookingWithEmail(id, reason);
+            response.put("success", true);
+            response.put("message", "Booking cancelled successfully and confirmation email sent");
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            System.err.println("❌ Error cancelling booking: " + e.getMessage());
             response.put("success", false);
             response.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(response);

@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -200,6 +201,52 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
+    public BookingResponseDTO updateBookingDetails(Long id, Map<String, Object> updateData) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + id));
+
+        if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
+            throw new RuntimeException("Cannot update a cancelled booking");
+        }
+
+        if (booking.getBookingStatus() == BookingStatus.CHECKED_OUT) {
+            throw new RuntimeException("Cannot update a completed booking");
+        }
+
+        System.out.println("📝 Updating booking details for: " + booking.getBookingReference());
+
+        // Update only allowed fields (not dates or room)
+        if (updateData.containsKey("numberOfGuests")) {
+            Integer numberOfGuests = (Integer) updateData.get("numberOfGuests");
+            if (numberOfGuests != null && numberOfGuests > 0) {
+                Room room = booking.getRoom();
+                if (numberOfGuests > room.getRoomType().getMaxOccupancy()) {
+                    throw new RuntimeException("Number of guests (" + numberOfGuests + ") exceeds room capacity (" + room.getRoomType().getMaxOccupancy() + ")");
+                }
+                booking.setNumberOfGuests(numberOfGuests);
+                System.out.println("📝 Updated number of guests to: " + numberOfGuests);
+            }
+        }
+
+        if (updateData.containsKey("specialRequests")) {
+            String specialRequests = (String) updateData.get("specialRequests");
+            booking.setSpecialRequests(specialRequests);
+            System.out.println("📝 Updated special requests");
+        }
+
+        if (updateData.containsKey("customerNotes")) {
+            String customerNotes = (String) updateData.get("customerNotes");
+            booking.setCustomerNotes(customerNotes);
+            System.out.println("📝 Updated customer notes");
+        }
+
+        booking.setUpdatedAt(LocalDateTime.now());
+        Booking updatedBooking = bookingRepository.save(booking);
+        
+        System.out.println("✅ Booking updated successfully: " + booking.getBookingReference());
+        return convertToResponseDTO(updatedBooking);
+    }
+
     public void cancelBooking(Long id, String reason) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + id));
@@ -223,6 +270,41 @@ public class BookingService {
             emailService.sendBookingCancellation(booking, booking.getCustomer().getUser().getEmail());
         } catch (Exception e) {
             System.err.println("Failed to send cancellation email: " + e.getMessage());
+        }
+    }
+
+    public void cancelBookingWithEmail(Long id, String reason) {
+        System.out.println("❌ Starting booking cancellation process for ID: " + id);
+        
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + id));
+
+        if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
+            throw new RuntimeException("Booking is already cancelled");
+        }
+
+        if (booking.getBookingStatus() == BookingStatus.CHECKED_OUT) {
+            throw new RuntimeException("Cannot cancel a completed booking");
+        }
+
+        // Update booking status
+        booking.setBookingStatus(BookingStatus.CANCELLED);
+        booking.setCancelledAt(LocalDateTime.now());
+        booking.setCancellationReason(reason);
+        booking.setPaymentStatus(PaymentStatus.REFUNDED);
+
+        // Save to database
+        Booking savedBooking = bookingRepository.save(booking);
+        System.out.println("✅ Booking cancelled in database: " + savedBooking.getBookingReference());
+
+        // Send cancellation email
+        try {
+            emailService.sendBookingCancellationWithDetails(savedBooking, savedBooking.getCustomer().getUser().getEmail(), reason);
+            System.out.println("📧 Cancellation email sent successfully");
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send cancellation email: " + e.getMessage());
+            e.printStackTrace();
+            // Don't throw exception - cancellation was successful, just email failed
         }
     }
 

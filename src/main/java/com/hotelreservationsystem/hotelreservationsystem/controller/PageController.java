@@ -13,7 +13,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 public class PageController {
@@ -326,6 +330,97 @@ public class PageController {
             System.out.println("View Booking: Error loading booking - " + e.getMessage());
             e.printStackTrace();
             return "redirect:/my-bookings?error=booking_not_found";
+        }
+    }
+
+    // Update booking page
+    @GetMapping("/booking/{bookingId}/edit")
+    public String editBooking(@PathVariable Long bookingId, Model model, Authentication authentication) {
+        System.out.println("Edit Booking: Processing request for booking ID: " + bookingId);
+
+        // Check if user is logged in
+        if (authentication == null || !authentication.isAuthenticated()) {
+            System.out.println("Edit Booking: User not authenticated, redirecting to login");
+            return "redirect:/auth/login?returnUrl=/booking/" + bookingId + "/edit";
+        }
+
+        String email = authentication.getName();
+        try {
+            var booking = bookingService.getBookingById(bookingId);
+            
+            // Check if this booking belongs to the logged-in user
+            if (!booking.getCustomerEmail().equals(email)) {
+                System.out.println("Edit Booking: Access denied - booking does not belong to user");
+                return "redirect:/my-bookings?error=access_denied";
+            }
+
+            // Check if booking can be edited
+            if (booking.getBookingStatus().name().equals("CANCELLED")) {
+                System.out.println("Edit Booking: Cannot edit cancelled booking");
+                return "redirect:/booking/" + bookingId + "?error=cannot_edit_cancelled";
+            }
+
+            if (booking.getBookingStatus().name().equals("CHECKED_OUT")) {
+                System.out.println("Edit Booking: Cannot edit completed booking");
+                return "redirect:/booking/" + bookingId + "?error=cannot_edit_completed";
+            }
+            
+            model.addAttribute("booking", booking);
+            System.out.println("Edit Booking: Booking found for editing - " + booking.getBookingReference());
+            
+            return "booking-edit";
+            
+        } catch (Exception e) {
+            System.out.println("Edit Booking: Error loading booking - " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/my-bookings?error=booking_not_found";
+        }
+    }
+
+    // Handle booking update via form submission
+    @PostMapping("/booking/{bookingId}/update")
+    public String updateBookingForm(@PathVariable Long bookingId,
+                                  @RequestParam("numberOfGuests") Integer numberOfGuests,
+                                  @RequestParam(value = "specialRequests", required = false) String specialRequests,
+                                  @RequestParam(value = "customerNotes", required = false) String customerNotes,
+                                  Authentication authentication,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            System.out.println("🔄 ===== FORM UPDATE BOOKING REQUEST =====");
+            System.out.println("📝 Booking ID: " + bookingId);
+            System.out.println("📝 Number of guests: " + numberOfGuests);
+            System.out.println("📝 Special requests: " + specialRequests);
+            System.out.println("📝 Customer notes: " + customerNotes);
+            System.out.println("📝 User: " + authentication.getName());
+
+            // Create update data map
+            Map<String, Object> updateData = new HashMap<>();
+            updateData.put("numberOfGuests", numberOfGuests);
+            updateData.put("specialRequests", specialRequests);
+            updateData.put("customerNotes", customerNotes);
+
+            // Verify user owns this booking
+            String userEmail = authentication.getName();
+            var existingBooking = bookingService.getBookingById(bookingId);
+            
+            if (!existingBooking.getCustomerEmail().equals(userEmail)) {
+                System.out.println("❌ Access denied: booking belongs to " + existingBooking.getCustomerEmail() + ", user is " + userEmail);
+                redirectAttributes.addFlashAttribute("error", "You can only update your own bookings");
+                return "redirect:/my-bookings";
+            }
+
+            // Update the booking
+            var updatedBooking = bookingService.updateBookingDetails(bookingId, updateData);
+            System.out.println("✅ Booking updated successfully via form");
+
+            redirectAttributes.addFlashAttribute("success", "Booking updated successfully!");
+            return "redirect:/booking/" + bookingId;
+
+        } catch (Exception e) {
+            System.err.println("❌ Error updating booking via form: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Error updating booking: " + e.getMessage());
+            return "redirect:/booking/" + bookingId + "/edit";
         }
     }
 

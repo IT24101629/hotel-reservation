@@ -50,6 +50,10 @@
                                 <td th:text="'LKR ' + ${#numbers.formatDecimal(booking.totalAmount, 1, 2)}">LKR 54,000.00</td>
                                 <td>
                                     <a th:href="@{'/booking/' + ${booking.bookingId}}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">View</a>
+                                    <a th:if="${booking.bookingStatus.name() == 'CONFIRMED' or booking.bookingStatus.name() == 'PENDING'}"
+                                       th:href="@{'/booking/' + ${booking.bookingId} + '/edit'}" 
+                                       class="btn btn-primary" 
+                                       style="padding: 0.5rem 1rem; margin-left: 0.5rem;">Edit</a>
                                     <button th:if="${booking.bookingStatus.name() == 'CONFIRMED' or booking.bookingStatus.name() == 'PENDING'}"
                                             class="btn btn-danger"
                                             style="padding: 0.5rem 1rem; margin-left: 0.5rem;"
@@ -93,30 +97,34 @@
 <th:block th:fragment="additional-js">
     <script>
         function cancelBooking(bookingId) {
-            if (confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
-                fetch('/api/bookings/' + bookingId + '/cancel', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
-                    },
-                    body: JSON.stringify({
-                        reason: 'Cancelled by customer'
+            const reason = prompt('Please provide a reason for cancellation (optional):', 'Cancelled by customer');
+            
+            if (reason !== null) { // User didn't click cancel
+                if (confirm('Are you sure you want to cancel this booking? This action cannot be undone and a cancellation email will be sent.')) {
+                    fetch('/api/bookings/' + bookingId + '/cancel', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+                        },
+                        body: JSON.stringify({
+                            reason: reason || 'Cancelled by customer'
+                        })
                     })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Booking cancelled successfully!');
-                        location.reload();
-                    } else {
-                        alert('Error cancelling booking: ' + (data.error || 'Unknown error'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error cancelling booking. Please try again.');
-                });
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('✅ Booking cancelled successfully! A confirmation email has been sent.');
+                            location.reload();
+                        } else {
+                            alert('❌ Error cancelling booking: ' + (data.error || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('❌ Error cancelling booking. Please try again.');
+                    });
+                }
             }
         }
     </script>
