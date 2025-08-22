@@ -404,7 +404,8 @@
                             <div class="message-content">
                                 <div class="message-avatar">🤖</div>
                                 <div class="message-bubble">
-                                    <p>Hello! 🏨 Welcome to Gold Palm Hotel! I'm here to help you find the perfect room for your stay. How can I assist you today?</p>
+                                    <p sec:authorize="isAuthenticated()">Hello, <span sec:authentication="name">User</span>! 🏨 Welcome back to Gold Palm Hotel! I'm here to help you with your bookings and room inquiries. How can I assist you today?</p>
+                                    <p sec:authorize="isAnonymous()">Hello! 🏨 Welcome to Gold Palm Hotel! I'm here to help you find the perfect room for your stay. How can I assist you today?</p>
                                 </div>
                             </div>
                         </div>
@@ -449,6 +450,15 @@
                             <button class="btn quick-action" data-message="What amenities do you offer?">
                                 ✨ Amenities
                             </button>
+                            <!-- Additional buttons for authenticated users -->
+                            <th:block sec:authorize="isAuthenticated()">
+                                <button class="btn quick-action" data-message="Show me my recent bookings">
+                                    📋 My Bookings
+                                </button>
+                                <button class="btn quick-action" data-message="I need help with my existing booking">
+                                    🔧 Booking Help
+                                </button>
+                            </th:block>
                         </div>
                     </div>
                 </div>
@@ -521,6 +531,20 @@
                                 📞 Call 011-4545678
                             </a>
                         </div>
+                        
+                        <!-- Quick navigation for authenticated users -->
+                        <th:block sec:authorize="isAuthenticated()">
+                            <hr>
+                            <div class="text-center">
+                                <strong>🔗 Quick Links</strong><br>
+                                <a href="/dashboard" class="btn btn-outline-primary btn-sm mt-1">
+                                    🏠 Dashboard
+                                </a>
+                                <a href="/my-bookings" class="btn btn-outline-secondary btn-sm mt-1">
+                                    📋 My Bookings
+                                </a>
+                            </div>
+                        </th:block>
                     </div>
                 </div>
             </div>
@@ -690,8 +714,34 @@
                 }
                 
                 if (messageLower.includes('amenities') || messageLower.includes('facilities')) {
+                    console.log('✨ Amenities question detected');
                     return {
                         response: "Our hotel offers excellent amenities:\n\n**All Rooms Include:**\n• Free WiFi 📶\n• Air Conditioning ❄️\n• LED TV 📺\n• Private Bathroom 🚿\n\n**Premium Rooms Also Feature:**\n• Mini Fridge 🧊\n• Balcony 🌅\n• Room Service 🛎️\n• Jacuzzi (Presidential Suite) 🛁\n\n**Hotel Facilities:**\n• 24/7 Reception\n• Restaurant\n• Parking\n• Laundry Service\n\nWhat type of room interests you most?",
+                        suggestedRooms: null
+                    };
+                }
+                
+                // Handle authenticated user queries
+                if (messageLower.includes('my recent bookings') || messageLower.includes('my bookings')) {
+                    console.log('📋 User bookings query detected');
+                    return {
+                        response: "I'd be happy to help you with your bookings! 📋\n\nTo view your booking history and manage your reservations, please visit your [My Bookings](/my-bookings) page where you can:\n\n• View all your current and past bookings\n• Check booking status and details\n• Modify or cancel bookings (if allowed)\n• Download booking confirmations\n\nIs there anything specific about your bookings you'd like help with?",
+                        suggestedRooms: null
+                    };
+                }
+                
+                if (messageLower.includes('existing booking') || messageLower.includes('booking help')) {
+                    console.log('🔧 Booking help query detected');
+                    return {
+                        response: "I'm here to help with your existing booking! 🔧\n\nI can assist you with:\n\n• **Check-in/Check-out questions**\n• **Room details and amenities**\n• **Booking modifications** (subject to availability)\n• **Special requests** (extra pillows, late checkout, etc.)\n• **Payment inquiries**\n• **Cancellation policies**\n\nPlease provide your booking reference number or tell me what specific help you need, and I'll do my best to assist you!",
+                        suggestedRooms: null
+                    };
+                }
+                
+                if (messageLower.includes('dashboard') || messageLower.includes('go back') || messageLower.includes('navigation')) {
+                    console.log('🏠 Dashboard/navigation query detected');
+                    return {
+                        response: "Need to navigate around? 🏠\n\n**Quick Links:**\n• [Dashboard](/dashboard) - Your main control panel\n• [My Bookings](/my-bookings) - View and manage reservations\n• [Profile](/profile) - Update your information\n• [Browse Rooms](/rooms) - Explore available accommodations\n\nYou can also use the navigation menu at the top of the page. Is there a specific page you're looking for?",
                         suggestedRooms: null
                     };
                 }
