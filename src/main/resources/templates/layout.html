@@ -21,6 +21,7 @@
                 <!-- Public Links -->
                 <li><a href="/">Home</a></li>
                 <li><a href="/rooms">Rooms</a></li>
+                <li><a href="/chat">🤖 Chat Assistant</a></li>
 
                 <!-- Authenticated User Links -->
                 <th:block sec:authorize="isAuthenticated()">
@@ -102,11 +103,12 @@
 
 <!-- Include additional JavaScript fragments if they exist -->
 <th:block th:replace="~{receptionist-dashboard :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/receptionist/dashboard')}"></th:block>
-<th:block th:replace="~{rooms :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'rooms') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/')}"></th:block>
-<th:block th:replace="~{booking :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/booking') and !#strings.contains(#httpServletRequest.requestURI, '/booking/') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/')}"></th:block>
-<th:block th:replace="~{booking-detail :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/booking/') and !#strings.contains(#httpServletRequest.requestURI, '/edit') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/')}"></th:block>
-<th:block th:replace="~{booking-edit :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/booking/') and #strings.contains(#httpServletRequest.requestURI, '/edit') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/')}"></th:block>
-<th:block th:replace="~{my-bookings :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'my-bookings') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/')}"></th:block>
-<th:block th:replace="~{payment :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'payment') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/')}"></th:block>
+<th:block th:replace="~{rooms :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'rooms') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/') and !#strings.contains(#httpServletRequest.requestURI, '/chat')}"></th:block>
+<th:block th:replace="~{booking :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/booking') and !#strings.contains(#httpServletRequest.requestURI, '/booking/') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/') and !#strings.contains(#httpServletRequest.requestURI, '/chat')}"></th:block>
+<th:block th:replace="~{booking-detail :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/booking/') and !#strings.contains(#httpServletRequest.requestURI, '/edit') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/') and !#strings.contains(#httpServletRequest.requestURI, '/chat')}"></th:block>
+<th:block th:replace="~{booking-edit :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/booking/') and #strings.contains(#httpServletRequest.requestURI, '/edit') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/') and !#strings.contains(#httpServletRequest.requestURI, '/chat')}"></th:block>
+<th:block th:replace="~{my-bookings :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'my-bookings') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/') and !#strings.contains(#httpServletRequest.requestURI, '/chat')}"></th:block>
+<th:block th:replace="~{payment :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, 'payment') and !#strings.contains(#httpServletRequest.requestURI, '/receptionist/') and !#strings.contains(#httpServletRequest.requestURI, '/chat')}"></th:block>
+<th:block th:replace="~{chat :: additional-js}" th:if="${#strings.contains(#httpServletRequest.requestURI, '/chat')}"></th:block>
 </body>
 </html>

@@ -65,6 +65,46 @@ public class RoomApiController {
         return ResponseEntity.ok(roomData);
     }
 
+    @PostMapping("/available")
+    public ResponseEntity<List<Map<String, Object>>> searchAvailableRooms(@RequestBody Map<String, Object> searchRequest) {
+        try {
+            String checkInDate = (String) searchRequest.get("checkInDate");
+            String checkOutDate = (String) searchRequest.get("checkOutDate");
+            Integer numberOfGuests = (Integer) searchRequest.get("numberOfGuests");
+            
+            System.out.println("🔍 Chat API searching rooms for: " + checkInDate + " to " + checkOutDate + " for " + numberOfGuests + " guests");
+            
+            List<Room> rooms;
+            
+            if (checkInDate != null && checkOutDate != null) {
+                rooms = roomService.findAvailableRoomsForDates(checkInDate, checkOutDate, numberOfGuests, null);
+            } else {
+                rooms = roomService.getAllAvailableRooms();
+                
+                // Filter by guest capacity if specified
+                if (numberOfGuests != null) {
+                    final Integer guests = numberOfGuests;
+                    rooms = rooms.stream()
+                            .filter(room -> room.getRoomType().getMaxOccupancy() >= guests)
+                            .collect(Collectors.toList());
+                }
+            }
+            
+            // Convert to response format for chatbot
+            List<Map<String, Object>> roomData = rooms.stream()
+                    .limit(4) // Limit to top 4 results for chat
+                    .map(this::convertRoomToMap)
+                    .collect(Collectors.toList());
+            
+            System.out.println("✅ Found " + roomData.size() + " available rooms for chat");
+            return ResponseEntity.ok(roomData);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error searching rooms for chat: " + e.getMessage());
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
     private Map<String, Object> convertRoomToMap(Room room) {
         Map<String, Object> roomMap = new HashMap<>();
         roomMap.put("roomId", room.getRoomId());

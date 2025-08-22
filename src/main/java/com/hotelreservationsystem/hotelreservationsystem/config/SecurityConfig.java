@@ -78,6 +78,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index", "/home").permitAll()
                         .requestMatchers("/auth/login", "/auth/register").permitAll()
                         .requestMatchers("/rooms").permitAll()
+                        .requestMatchers("/chat").permitAll()
                         .requestMatchers("/error").permitAll()
 
                         // Custom payment endpoints - require authentication
@@ -93,6 +94,8 @@ public class SecurityConfig {
                         // API endpoints
                         .requestMatchers("/api/bookings/**").authenticated()
                         .requestMatchers("/api/payment/alternative").authenticated()
+                        .requestMatchers("/api/rooms/available").permitAll()
+                        .requestMatchers("/chat/**").permitAll()
 
                         // All other requests need authentication
                         .anyRequest().authenticated()
@@ -125,10 +128,11 @@ public class SecurityConfig {
                                 .policyDirectives("default-src 'self'; " +
                                         "script-src 'self' 'unsafe-inline' 'unsafe-eval' " +
                                         "https://www.google-analytics.com https://www.googletagmanager.com " +
-                                        "https://maxcdn.bootstrapcdn.com https://cdnjs.cloudflare.com; " +
+                                        "https://maxcdn.bootstrapcdn.com https://cdnjs.cloudflare.com " +
+                                        "https://unpkg.com https://cdn.jsdelivr.net; " +
                                         "style-src 'self' 'unsafe-inline' " +
                                         "https://maxcdn.bootstrapcdn.com https://cdnjs.cloudflare.com " +
-                                        "https://fonts.googleapis.com; " +
+                                        "https://fonts.googleapis.com https://cdn.jsdelivr.net; " +
                                         "font-src 'self' https://fonts.gstatic.com " +
                                         "https://maxcdn.bootstrapcdn.com https://cdnjs.cloudflare.com; " +
                                         "img-src 'self' data: " +

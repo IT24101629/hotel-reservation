@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pattern Matching Test</title>
+</head>
+<body>
+    <h2>Testing Pattern Recognition for: "I need a room from December 25 to 27 for 2 guests"</h2>
+    <div id="results"></div>
+
+    <script>
+        // Copy the exact pattern matching functions from our chatbot
+        function containsBookingDetails(message) {
+            const messageLower = message.toLowerCase();
+            
+            console.log('🔍 Raw message for analysis:', message);
+            
+            // Multiple date patterns to catch various formats
+            const datePatterns = [
+                /\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}/i,
+                /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d{1,2}/i,
+                /\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}/,
+                /\d{1,2}\s+(st|nd|rd|th)/i,
+                /(december|dec)\s+\d{1,2}/i,
+                /from\s+(\w+)\s+(\d+)\s+to\s+(\d+)/i,  // "from December 25 to 27"
+                /from\s+(\w+)\s+(\d+)\s+to\s+(\w+)\s+(\d+)/i  // "from December 25 to December 27"
+            ];
+            
+            let hasDate = false;
+            for (let i = 0; i < datePatterns.length; i++) {
+                if (datePatterns[i].test(message)) {
+                    console.log(`✅ Date pattern ${i} matched:`, datePatterns[i]);
+                    hasDate = true;
+                    break;
+                }
+            }
+            
+            // Multiple guest patterns
+            const guestPatterns = [
+                /\b\d+\s*(guest|guests)\b/i,
+                /\b\d+\s*(people|person|persons)\b/i,
+                /for\s+\d+\s*(guest|people|person)/i
+            ];
+            
+            let hasGuests = false;
+            for (let i = 0; i < guestPatterns.length; i++) {
+                if (guestPatterns[i].test(message)) {
+                    console.log(`✅ Guest pattern ${i} matched:`, guestPatterns[i]);
+                    hasGuests = true;
+                    break;
+                }
+            }
+            
+            // Check for booking intent keywords
+            const bookingIntentPattern = /(need|want|book|reserve|room|stay|from.*to)/i;
+            const hasBookingIntent = bookingIntentPattern.test(message);
+            if (hasBookingIntent) {
+                console.log('✅ Booking intent matched:', bookingIntentPattern);
+            }
+            
+            const result = hasDate && hasGuests && hasBookingIntent;
+            
+            console.log('🔍 DETAILED booking analysis:', {
+                message: message,
+                hasDate: hasDate,
+                hasGuests: hasGuests,
+                hasBookingIntent: hasBookingIntent,
+                FINAL_RESULT: result
+            });
+            
+            return result;
+        }
+
+        function extractBookingDetails(message) {
+            const messageLower = message.toLowerCase();
+            
+            // Extract dates
+            let checkIn = null, checkOut = null;
+            
+            // Look for "from X to Y" pattern - more robust
+            const fromToPatterns = [
+                /from\s+(december|dec)\s+(\d{1,2})\s+to\s+(\d{1,2})/i,
+                /from\s+(december|dec)\s+(\d{1,2})\s+to\s+(december|dec)\s+(\d{1,2})/i,
+                /from\s+(\w+)\s+(\d{1,2})\s+to\s+(\w*)\s*(\d{1,2})/i
+            ];
+            
+            for (const pattern of fromToPatterns) {
+                const match = message.match(pattern);
+                if (match) {
+                    if (match.length === 4) {
+                        // Pattern: "from December 25 to 27"
+                        checkIn = `${match[1]} ${match[2]}`;
+                        checkOut = `${match[1]} ${match[3]}`;
+                    } else if (match.length === 5) {
+                        // Pattern: "from December 25 to December 27"
+                        checkIn = `${match[1]} ${match[2]}`;
+                        checkOut = `${match[3]} ${match[4]}`;
+                    }
+                    break;
+                }
+            }
+            
+            // Extract guest count - more patterns
+            const guestPatterns = [
+                /for\s+(\d+)\s*(guest|guests|people|person)/i,
+                /\b(\d+)\s*(guest|guests|people|person|persons)\b/i
+            ];
+            
+            let guests = 2; // Default
+            for (const pattern of guestPatterns) {
+                const match = message.match(pattern);
+                if (match) {
+                    guests = parseInt(match[1]);
+                    break;
+                }
+            }
+            
+            const result = {
+                checkIn: checkIn || 'December 25',
+                checkOut: checkOut || 'December 27',
+                guests: guests
+            };
+            
+            console.log('📅 Extracted booking details:', result);
+            
+            return result;
+        }
+
+        // Test the exact message
+        const testMessage = "I need a room from December 25 to 27 for 2 guests";
+        
+        console.log("=== TESTING PATTERN MATCHING ===");
+        const hasBookingDetails = containsBookingDetails(testMessage);
+        
+        if (hasBookingDetails) {
+            console.log("✅ PATTERN MATCHING SUCCESSFUL!");
+            const extractedDetails = extractBookingDetails(testMessage);
+            console.log("Extracted details:", extractedDetails);
+            
+            document.getElementById('results').innerHTML = `
+                <h3 style="color: green;">✅ PATTERN MATCHING SUCCESSFUL!</h3>
+                <p><strong>Message:</strong> "${testMessage}"</p>
+                <p><strong>Detected:</strong> Complete booking request</p>
+                <p><strong>Check-in:</strong> ${extractedDetails.checkIn}</p>
+                <p><strong>Check-out:</strong> ${extractedDetails.checkOut}</p>
+                <p><strong>Guests:</strong> ${extractedDetails.guests}</p>
+                <p><strong>Action:</strong> Will search database for available rooms</p>
+            `;
+        } else {
+            console.log("❌ PATTERN MATCHING FAILED!");
+            document.getElementById('results').innerHTML = `
+                <h3 style="color: red;">❌ PATTERN MATCHING FAILED!</h3>
+                <p><strong>Message:</strong> "${testMessage}"</p>
+                <p><strong>Result:</strong> Will show generic booking response instead of searching database</p>
+                <p><strong>Check console for detailed analysis</strong></p>
+            `;
+        }
+    </script>
+</body>
+</html>
