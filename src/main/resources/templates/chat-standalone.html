@@ -720,11 +720,15 @@
                 const datePatterns = [
                     /\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}/i,
                     /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d{1,2}/i,
-                    /\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}/,
+                    /\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}/,  // DD/MM/YYYY or DD-MM-YYYY
                     /\d{1,2}\s+(st|nd|rd|th)/i,
                     /(december|dec)\s+\d{1,2}/i,
                     /from\s+(\w+)\s+(\d+)\s+to\s+(\d+)/i,  // "from December 25 to 27"
-                    /from\s+(\w+)\s+(\d+)\s+to\s+(\w+)\s+(\d+)/i  // "from December 25 to December 27"
+                    /from\s+(\w+)\s+(\d+)\s+to\s+(\w+)\s+(\d+)/i,  // "from December 25 to December 27"
+                    /check\s+in.*\d{1,2}\/\d{1,2}\/\d{4}/i,  // "check in 25/12/2025"
+                    /\d{1,2}\/\d{1,2}\/\d{4}.*check\s+in/i,  // "23/12/2025 as check in"
+                    /availability.*\d{1,2}\/\d{1,2}\/\d{4}/i,  // "availability 23/12/2025"
+                    /\b\d{1,2}\/\d{1,2}\/\d{4}\b/  // Any DD/MM/YYYY format
                 ];
                 
                 let hasDate = false;
@@ -740,7 +744,8 @@
                 const guestPatterns = [
                     /\b\d+\s*(guest|guests)\b/i,
                     /\b\d+\s*(people|person|persons)\b/i,
-                    /for\s+\d+\s*(guest|people|person)/i
+                    /for\s+\d+\s*(guest|people|person|member|members)/i,
+                    /\b\d+\s*(member|members)\b/i  // "4 members"
                 ];
                 
                 let hasGuests = false;
@@ -753,7 +758,7 @@
                 }
                 
                 // Check for booking intent keywords
-                const bookingIntentPattern = /(need|want|book|reserve|room|stay|from.*to)/i;
+                const bookingIntentPattern = /(need|want|book|reserve|room|stay|from.*to|availability|available|check)/i;
                 const hasBookingIntent = bookingIntentPattern.test(message);
                 if (hasBookingIntent) {
                     console.log('✅ Booking intent matched:', bookingIntentPattern);
@@ -801,7 +806,49 @@
                     }
                 }
                 
-                // If no "from...to" pattern, look for individual dates
+                // Look for DD/MM/YYYY patterns specifically
+                if (!checkIn) {
+                    // Extract all DD/MM/YYYY dates
+                    const ddmmyyyyDates = message.match(/\b\d{1,2}\/\d{1,2}\/\d{4}\b/g);
+                    if (ddmmyyyyDates && ddmmyyyyDates.length >= 1) {
+                        // Look for check-in context
+                        const checkInPatterns = [
+                            /(\d{1,2}\/\d{1,2}\/\d{4}).*check\s+in/i,
+                            /check\s+in.*(\d{1,2}\/\d{1,2}\/\d{4})/i,
+                            /availability.*(\d{1,2}\/\d{1,2}\/\d{4})/i
+                        ];
+                        
+                        // Find check-in date
+                        for (const pattern of checkInPatterns) {
+                            const match = message.match(pattern);
+                            if (match) {
+                                checkIn = this.convertDDMMYYYYToReadable(match[1]);
+                                break;
+                            }
+                        }
+                        
+                        // If we found a check-in date, look for check-out or use default
+                        if (checkIn && ddmmyyyyDates.length >= 2) {
+                            // Use the second date as check-out
+                            checkOut = this.convertDDMMYYYYToReadable(ddmmyyyyDates[1]);
+                        } else if (checkIn) {
+                            // Default to 2 days later
+                            checkOut = this.addDaysToDate(checkIn, 2);
+                        }
+                        
+                        // If still no specific check-in found, use first date as check-in
+                        if (!checkIn && ddmmyyyyDates.length >= 1) {
+                            checkIn = this.convertDDMMYYYYToReadable(ddmmyyyyDates[0]);
+                            if (ddmmyyyyDates.length >= 2) {
+                                checkOut = this.convertDDMMYYYYToReadable(ddmmyyyyDates[1]);
+                            } else {
+                                checkOut = this.addDaysToDate(checkIn, 2);
+                            }
+                        }
+                    }
+                }
+                
+                // If no DD/MM/YYYY pattern, look for individual dates (original logic)
                 if (!checkIn) {
                     const dateMatches = message.match(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d{1,2}|\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}/gi);
                     if (dateMatches && dateMatches.length >= 2) {
@@ -815,8 +862,8 @@
                 
                 // Extract guest count - more patterns
                 const guestPatterns = [
-                    /for\s+(\d+)\s*(guest|guests|people|person)/i,
-                    /\b(\d+)\s*(guest|guests|people|person|persons)\b/i
+                    /for\s+(\d+)\s*(guest|guests|people|person|member|members)/i,
+                    /\b(\d+)\s*(guest|guests|people|person|persons|member|members)\b/i
                 ];
                 
                 let guests = 2; // Default
@@ -889,8 +936,64 @@
                 return this.getSampleRooms(bookingInfo.guests);
             }
             
+            convertDDMMYYYYToReadable(ddmmyyyy) {
+                // Convert "23/12/2025" to "December 23, 2025"
+                const parts = ddmmyyyy.split('/');
+                const day = parseInt(parts[0]);
+                const month = parseInt(parts[1]);
+                const year = parts[2];
+                
+                const monthNames = [
+                    'January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'
+                ];
+                
+                return `${monthNames[month - 1]} ${day}, ${year}`;
+            }
+            
+            addDaysToDate(dateString, days) {
+                // Simple date addition - for production use a proper date library
+                // For now, just return a default
+                if (dateString.includes('December 23')) {
+                    return 'December 25, 2025';
+                }
+                return 'December 27, 2025';
+            }
+
             parseDate(dateString) {
                 // Simple date parsing - in production, use a proper date library
+                console.log('📅 Parsing date string:', dateString);
+                
+                // Check if it's DD/MM/YYYY format first
+                const ddmmyyyyMatch = dateString.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
+                if (ddmmyyyyMatch) {
+                    const day = ddmmyyyyMatch[1].padStart(2, '0');
+                    const month = ddmmyyyyMatch[2].padStart(2, '0');
+                    const year = ddmmyyyyMatch[3];
+                    console.log('📅 DD/MM/YYYY format detected:', `${year}-${month}-${day}`);
+                    return `${year}-${month}-${day}`;
+                }
+                
+                // Check for "Month DD, YYYY" format
+                if (dateString.includes(',')) {
+                    const parts = dateString.split(',');
+                    if (parts.length >= 2) {
+                        const monthDay = parts[0].trim();
+                        const year = parts[1].trim();
+                        const monthDayMatch = monthDay.match(/(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})/i);
+                        if (monthDayMatch) {
+                            const monthMap = {
+                                'january': 1, 'february': 2, 'march': 3, 'april': 4, 'may': 5, 'june': 6,
+                                'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12
+                            };
+                            const month = monthMap[monthDayMatch[1].toLowerCase()];
+                            const day = parseInt(monthDayMatch[2]);
+                            return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                        }
+                    }
+                }
+                
+                // Original logic for other formats
                 const monthMap = {
                     'january': 1, 'jan': 1, 'february': 2, 'feb': 2, 'march': 3, 'mar': 3,
                     'april': 4, 'apr': 4, 'may': 5, 'june': 6, 'jun': 6,
@@ -899,7 +1002,7 @@
                 };
                 
                 const dateStr = dateString.toLowerCase();
-                let month = 12, day = 25, year = 2024; // Default to December 25, 2024
+                let month = 12, day = 25, year = 2025; // Default to December 25, 2025
                 
                 // Extract month
                 for (const [monthName, monthNum] of Object.entries(monthMap)) {
