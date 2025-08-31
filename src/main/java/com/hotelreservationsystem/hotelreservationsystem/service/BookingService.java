@@ -337,13 +337,15 @@ public class BookingService {
             throw new RuntimeException("Check-out date must be after check-in date");
         }
 
-        if (request.getCheckOutDate().equals(request.getCheckInDate())) {
-            throw new RuntimeException("Check-out date must be at least one day after check-in date");
+        long daysBetween = ChronoUnit.DAYS.between(request.getCheckInDate(), request.getCheckOutDate());
+        
+        if (daysBetween <= 0) {
+            throw new RuntimeException("Check-out date must be after check-in date");
         }
 
-        long daysBetween = ChronoUnit.DAYS.between(request.getCheckInDate(), request.getCheckOutDate());
-        if (daysBetween > 30) {
-            throw new RuntimeException("Maximum stay duration is 30 days");
+        // Allow stays from 1 day to 90 days (3 months)
+        if (daysBetween > 90) {
+            throw new RuntimeException("Maximum stay duration is 90 days");
         }
     }
 

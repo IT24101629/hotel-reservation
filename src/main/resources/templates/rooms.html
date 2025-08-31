@@ -139,6 +139,11 @@
 <th:block th:fragment="additional-js">
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if we're actually on the rooms page
+            if (!window.location.pathname.includes('/rooms')) {
+                return;
+            }
+            
             console.log('Rooms page JavaScript loading...');
             
             // Debug session storage state
@@ -298,7 +303,14 @@
 
         function performSearch() {
             try {
-                const formData = new FormData(document.getElementById('roomSearchForm'));
+                const searchForm = document.getElementById('roomSearchForm');
+                if (!searchForm) {
+                    console.error('Search form not found');
+                    showAlert('Search form not found. Please refresh the page.', 'error');
+                    return;
+                }
+
+                const formData = new FormData(searchForm);
                 const searchParams = new URLSearchParams();
 
                 for (let [key, value] of formData.entries()) {
@@ -307,16 +319,19 @@
                     }
                 }
 
+                console.log('Performing search with params:', searchParams.toString());
                 showLoading();
 
                 fetch(`/api/rooms/search?${searchParams.toString()}`)
                     .then(response => {
+                        console.log('Search response status:', response.status);
                         if (!response.ok) {
                             throw new Error(`HTTP error! status: ${response.status}`);
                         }
                         return response.json();
                     })
                     .then(data => {
+                        console.log('Search results received:', data);
                         hideLoading();
                         displaySearchResults(data);
                     })
@@ -333,14 +348,20 @@
 
         function displaySearchResults(rooms) {
             const resultsContainer = document.getElementById('searchResults');
+            const noResultsContainer = document.getElementById('noResults');
+
+            if (!resultsContainer) {
+                console.error('Search results container not found');
+                return;
+            }
 
             if (rooms.length === 0) {
-                document.getElementById('noResults').style.display = 'block';
+                if (noResultsContainer) noResultsContainer.style.display = 'block';
                 resultsContainer.style.display = 'none';
                 return;
             }
 
-            document.getElementById('noResults').style.display = 'none';
+            if (noResultsContainer) noResultsContainer.style.display = 'none';
 
             resultsContainer.innerHTML = rooms.map(room => `
                 <div class="room-card fade-in">

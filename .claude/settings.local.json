@@ -4,7 +4,9 @@
       "Bash(mkdir:*)",
       "Bash(where java)",
       "Bash(cmd /c:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(mvn clean:*)",
+      "Bash(\"./mvnw.cmd\" clean compile)"
     ],
     "deny": [],
     "ask": [],

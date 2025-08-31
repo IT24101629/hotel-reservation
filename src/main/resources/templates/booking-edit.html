@@ -6,6 +6,14 @@
 <body>
 <div th:fragment="content">
     <div class="container">
+        <!-- Show content only if booking exists, otherwise show message -->
+        <div th:if="${booking == null}" class="text-center mt-5">
+            <h2>⚠️ Booking Not Found</h2>
+            <p>The booking you're trying to edit could not be found.</p>
+            <a href="/my-bookings" class="btn btn-primary">← Back to My Bookings</a>
+        </div>
+        
+        <div th:if="${booking != null}">
         <!-- Page Header -->
         <section class="mt-2 mb-3">
             <div class="d-flex justify-content-between align-items-center">
@@ -14,7 +22,7 @@
                     <p>Update your reservation details</p>
                 </div>
                 <div>
-                    <a th:href="@{'/booking/' + ${booking.bookingId}}" class="btn btn-secondary">← Back to Booking</a>
+                    <a th:href="@{'/booking/' + ${booking != null ? booking.bookingId : ''}}" th:if="${booking != null}" class="btn btn-secondary">← Back to Booking</a>
                 </div>
             </div>
         </section>
@@ -30,27 +38,25 @@
                         <div class="col-md-6">
                             <div class="info-section">
                                 <h4>🎫 Booking Reference</h4>
-                                <p class="booking-ref" th:text="${booking.bookingReference}">BK123456</p>
+                                <p class="booking-ref" th:text="${booking != null ? booking.bookingReference : 'N/A'}">BK123456</p>
                             </div>
                             <div class="info-section">
                                 <h4>🏨 Room Details (Cannot be changed)</h4>
-                                <p><strong>Room:</strong> <span th:text="${booking.roomNumber + ' (' + booking.roomType + ')'}">101 (Deluxe)</span></p>
-                                <p><strong>Dates:</strong> <span th:text="${#temporals.format(booking.checkInDate, 'MMM dd, yyyy')} + ' - ' + ${#temporals.format(booking.checkOutDate, 'MMM dd, yyyy')}">Jan 15 - Jan 18, 2025</span></p>
-                                <p><strong>Nights:</strong> <span th:text="${booking.numberOfNights}">3</span></p>
+                                <p><strong>Room:</strong> <span th:text="${booking != null ? booking.roomNumber + ' (' + booking.roomType + ')' : 'N/A'}">101 (Deluxe)</span></p>
+                                <p><strong>Dates:</strong> <span th:text="${booking != null ? #temporals.format(booking.checkInDate, 'MMM dd, yyyy') + ' - ' + #temporals.format(booking.checkOutDate, 'MMM dd, yyyy') : 'N/A'}">Jan 15 - Jan 18, 2025</span></p>
+                                <p><strong>Nights:</strong> <span th:text="${booking != null ? booking.numberOfNights : 'N/A'}">3</span></p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="info-section">
                                 <h4>📊 Status</h4>
                                 <span class="amenity-tag"
-                                      th:classappend="${booking.bookingStatus.name() == 'CONFIRMED' ? 'confirmed' :
-                                                     booking.bookingStatus.name() == 'PENDING' ? 'pending' :
-                                                     booking.bookingStatus.name() == 'CANCELLED' ? 'cancelled' : ''}"
-                                      th:text="${booking.bookingStatus}">CONFIRMED</span>
+                                      th:classappend="${booking != null and booking.bookingStatus != null ? (booking.bookingStatus.name() == 'CONFIRMED' ? 'confirmed' : booking.bookingStatus.name() == 'PENDING' ? 'pending' : booking.bookingStatus.name() == 'CANCELLED' ? 'cancelled' : '') : ''}"
+                                      th:text="${booking != null ? booking.bookingStatus : 'N/A'}">CONFIRMED</span>
                             </div>
                             <div class="info-section">
                                 <h4>💰 Total Amount</h4>
-                                <p class="amount" th:text="'LKR ' + ${#numbers.formatDecimal(booking.totalAmount, 1, 2)}">LKR 54,000.00</p>
+                                <p class="amount" th:text="${booking != null ? 'LKR ' + #numbers.formatDecimal(booking.totalAmount, 1, 2) : 'LKR 0.00'}">LKR 54,000.00</p>
                             </div>
                         </div>
                     </div>
@@ -76,12 +82,12 @@
                                     <label for="numberOfGuests">👥 Number of Guests *</label>
                                     <select class="form-control" id="numberOfGuests" name="numberOfGuests" required>
                                         <option value="">Select number of guests</option>
-                                        <option value="1" th:selected="${booking.numberOfGuests == 1}">1 Guest</option>
-                                        <option value="2" th:selected="${booking.numberOfGuests == 2}">2 Guests</option>
-                                        <option value="3" th:selected="${booking.numberOfGuests == 3}">3 Guests</option>
-                                        <option value="4" th:selected="${booking.numberOfGuests == 4}">4 Guests</option>
-                                        <option value="5" th:selected="${booking.numberOfGuests == 5}">5 Guests</option>
-                                        <option value="6" th:selected="${booking.numberOfGuests == 6}">6 Guests</option>
+                                        <option value="1" th:selected="${booking != null and booking.numberOfGuests == 1}">1 Guest</option>
+                                        <option value="2" th:selected="${booking != null and booking.numberOfGuests == 2}">2 Guests</option>
+                                        <option value="3" th:selected="${booking != null and booking.numberOfGuests == 3}">3 Guests</option>
+                                        <option value="4" th:selected="${booking != null and booking.numberOfGuests == 4}">4 Guests</option>
+                                        <option value="5" th:selected="${booking != null and booking.numberOfGuests == 5}">5 Guests</option>
+                                        <option value="6" th:selected="${booking != null and booking.numberOfGuests == 6}">6 Guests</option>
                                     </select>
                                     <small class="form-text text-muted">Maximum capacity depends on room type</small>
                                 </div>
@@ -90,7 +96,7 @@
                                 <div class="form-group">
                                     <label for="status">📊 Current Status</label>
                                     <input type="text" class="form-control" id="status" 
-                                           th:value="${booking.bookingStatus}" readonly>
+                                           th:value="${booking != null ? booking.bookingStatus : ''}" readonly>
                                     <small class="form-text text-muted">Status cannot be changed here</small>
                                 </div>
                             </div>
@@ -100,7 +106,7 @@
                             <label for="specialRequests">📝 Special Requests</label>
                             <textarea class="form-control" id="specialRequests" name="specialRequests" 
                                       rows="4" placeholder="Any special requests or requirements..."
-                                      th:text="${booking.specialRequests}"></textarea>
+                                      th:text="${booking != null ? booking.specialRequests : ''}"></textarea>
                             <small class="form-text text-muted">Early check-in, late check-out, special amenities, etc.</small>
                         </div>
 
@@ -108,7 +114,7 @@
                             <label for="customerNotes">💭 Personal Notes</label>
                             <textarea class="form-control" id="customerNotes" name="customerNotes" 
                                       rows="3" placeholder="Your personal notes about this booking..."
-                                      th:text="${booking.customerNotes}"></textarea>
+                                      th:text="${booking != null ? booking.customerNotes : ''}"></textarea>
                             <small class="form-text text-muted">Private notes for your reference</small>
                         </div>
 
@@ -116,7 +122,7 @@
                             <button type="submit" class="btn btn-primary" onclick="return updateBooking();">
                                 ✅ Update Booking
                             </button>
-                            <a th:href="@{'/booking/' + ${booking.bookingId}}" class="btn btn-secondary" style="margin-left: 0.5rem;">
+                            <a th:href="@{'/booking/' + ${booking != null ? booking.bookingId : ''}}" th:if="${booking != null}" class="btn btn-secondary" style="margin-left: 0.5rem;">
                                 ❌ Cancel Changes
                             </a>
                         </div>
@@ -126,7 +132,7 @@
                     <div class="mt-3">
                         <h4>🔄 Alternative Update Method</h4>
                         <p>If the above buttons don't work, try this traditional form submission:</p>
-                        <form th:action="@{'/booking/' + ${booking.bookingId} + '/update'}" method="POST">
+                        <form th:action="@{'/booking/' + ${booking != null ? booking.bookingId : ''} + '/update'}" th:if="${booking != null}" method="POST">
                             <!-- CSRF Token -->
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                             
@@ -136,12 +142,12 @@
                                         <label for="alt_numberOfGuests">👥 Number of Guests *</label>
                                         <select class="form-control" id="alt_numberOfGuests" name="numberOfGuests" required>
                                             <option value="">Select number of guests</option>
-                                            <option value="1" th:selected="${booking.numberOfGuests == 1}">1 Guest</option>
-                                            <option value="2" th:selected="${booking.numberOfGuests == 2}">2 Guests</option>
-                                            <option value="3" th:selected="${booking.numberOfGuests == 3}">3 Guests</option>
-                                            <option value="4" th:selected="${booking.numberOfGuests == 4}">4 Guests</option>
-                                            <option value="5" th:selected="${booking.numberOfGuests == 5}">5 Guests</option>
-                                            <option value="6" th:selected="${booking.numberOfGuests == 6}">6 Guests</option>
+                                            <option value="1" th:selected="${booking != null and booking.numberOfGuests == 1}">1 Guest</option>
+                                            <option value="2" th:selected="${booking != null and booking.numberOfGuests == 2}">2 Guests</option>
+                                            <option value="3" th:selected="${booking != null and booking.numberOfGuests == 3}">3 Guests</option>
+                                            <option value="4" th:selected="${booking != null and booking.numberOfGuests == 4}">4 Guests</option>
+                                            <option value="5" th:selected="${booking != null and booking.numberOfGuests == 5}">5 Guests</option>
+                                            <option value="6" th:selected="${booking != null and booking.numberOfGuests == 6}">6 Guests</option>
                                         </select>
                                     </div>
                                 </div>
@@ -151,14 +157,14 @@
                                 <label for="alt_specialRequests">📝 Special Requests</label>
                                 <textarea class="form-control" id="alt_specialRequests" name="specialRequests" 
                                           rows="3" placeholder="Any special requests or requirements..."
-                                          th:text="${booking.specialRequests}"></textarea>
+                                          th:text="${booking != null ? booking.specialRequests : ''}"></textarea>
                             </div>
 
                             <div class="form-group">
                                 <label for="alt_customerNotes">💭 Personal Notes</label>
                                 <textarea class="form-control" id="alt_customerNotes" name="customerNotes" 
                                           rows="2" placeholder="Your personal notes about this booking..."
-                                          th:text="${booking.customerNotes}"></textarea>
+                                          th:text="${booking != null ? booking.customerNotes : ''}"></textarea>
                             </div>
                             
                             <button type="submit" class="btn btn-warning">
@@ -184,6 +190,7 @@
                 </div>
             </div>
         </section>
+        </div> <!-- End booking != null wrapper -->
     </div>
 </div>
 
@@ -192,12 +199,12 @@
     <script>
         // Debug information
         console.log('🔄 Booking edit page loaded');
-        console.log('📝 Booking ID from Thymeleaf:', /*[[${booking.bookingId}]]*/ 0);
+        console.log('📝 Booking ID from Thymeleaf:', /*[[${booking != null ? booking.bookingId : 0}]]*/ 0);
         
         function updateBooking() {
             console.log('🔄 Update function called');
             
-            const bookingId = /*[[${booking.bookingId}]]*/ 0;
+            const bookingId = /*[[${booking != null ? booking.bookingId : 0}]]*/ 0;
             
             // Get form values directly
             const numberOfGuests = document.getElementById('numberOfGuests').value;
