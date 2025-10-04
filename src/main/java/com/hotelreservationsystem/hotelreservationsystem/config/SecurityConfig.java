@@ -15,8 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 
 @Configuration
@@ -78,7 +76,8 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index", "/home").permitAll()
                         .requestMatchers("/auth/login", "/auth/register").permitAll()
                         .requestMatchers("/rooms").permitAll()
-                        .requestMatchers("/chat").permitAll()
+                        .requestMatchers("/promotions", "/promotions/**").permitAll()
+                        
                         .requestMatchers("/error").permitAll()
 
                         // Custom payment endpoints - require authentication
@@ -88,6 +87,9 @@ public class SecurityConfig {
                         .requestMatchers("/dashboard/**").authenticated()
                         .requestMatchers("/booking/**").authenticated()
                         .requestMatchers("/payment/**").authenticated()
+                        .requestMatchers("/reviews/**").authenticated()
+                        .requestMatchers("/my-bookings").authenticated()
+                        .requestMatchers("/profile").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/receptionist/**").hasRole("STAFF")
 
@@ -95,7 +97,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/bookings/**").authenticated()
                         .requestMatchers("/api/payment/alternative").authenticated()
                         .requestMatchers("/api/rooms/available").permitAll()
-                        .requestMatchers("/chat/**").permitAll()
+                        
 
                         // All other requests need authentication
                         .anyRequest().authenticated()
@@ -120,9 +122,7 @@ public class SecurityConfig {
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false)
                 )
-                .csrf(csrf -> {
-                        // CSRF is enabled for custom payment endpoints for security
-                })
+                .csrf(csrf -> {})
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp
                                 .policyDirectives("default-src 'self'; " +
@@ -138,7 +138,8 @@ public class SecurityConfig {
                                         "img-src 'self' data: " +
                                         "https://www.google-analytics.com; " +
                                         "connect-src 'self' " +
-                                        "https://www.google-analytics.com https://analytics.google.com; " +
+                                        "https://www.google-analytics.com https://analytics.google.com " +
+                                        "https://cdn.jsdelivr.net https://unpkg.com; " +
                                         "frame-src 'self'; " +
                                         "form-action 'self';")
                         )

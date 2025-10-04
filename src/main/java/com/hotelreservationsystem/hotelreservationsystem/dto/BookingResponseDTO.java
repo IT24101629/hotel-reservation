@@ -40,7 +40,12 @@ public class BookingResponseDTO {
     
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
-    
+
+    // Promo code fields
+    private String promoCode;
+    private BigDecimal discountAmount;
+    private BigDecimal originalAmount;
+
     // Default constructor
     public BookingResponseDTO() {}
     
@@ -212,7 +217,31 @@ public class BookingResponseDTO {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
-    
+
+    public String getPromoCode() {
+        return promoCode;
+    }
+
+    public void setPromoCode(String promoCode) {
+        this.promoCode = promoCode;
+    }
+
+    public BigDecimal getDiscountAmount() {
+        return discountAmount;
+    }
+
+    public void setDiscountAmount(BigDecimal discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    public BigDecimal getOriginalAmount() {
+        return originalAmount;
+    }
+
+    public void setOriginalAmount(BigDecimal originalAmount) {
+        this.originalAmount = originalAmount;
+    }
+
     @Override
     public String toString() {
         return "BookingResponseDTO{" +

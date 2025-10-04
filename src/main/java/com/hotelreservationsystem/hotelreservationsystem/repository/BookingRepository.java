@@ -64,6 +64,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     // Find bookings by check-in date
     List<Booking> findByCheckInDate(LocalDate checkInDate);
     
-    // Find bookings by check-out date  
+    // Find bookings by check-out date
     List<Booking> findByCheckOutDate(LocalDate checkOutDate);
+
+    // Find top 5 recent bookings for dashboard (ordered by createdAt)
+    List<Booking> findTop5ByOrderByCreatedAtDesc();
 }

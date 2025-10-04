@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>Review Detail - Admin Panel</title>
+    <style>
+        .rating-stars {
+            color: #ffc107;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container-fluid mt-4">
+        <!-- Back Button -->
+        <div class="mb-3">
+            <a href="/admin/reviews" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Reviews
+            </a>
+        </div>
+
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 mb-2">Review Detail</h1>
+                <p class="text-muted mb-0">View and manage review information</p>
+            </div>
+            <div>
+                <span class="badge" th:classappend="${review.isApproved} ? 'bg-success' : 'bg-warning'" style="font-size: 1rem;">
+                    <i class="fas" th:classappend="${review.isApproved} ? 'fa-check-circle' : 'fa-clock'"></i>
+                    <span th:text="${review.isApproved} ? 'Approved' : 'Pending Approval'">Status</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i><span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i><span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Column: Review Details -->
+            <div class="col-lg-8">
+                <!-- Review Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-star me-2"></i>Review Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Customer Info -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="mb-1" th:text="${review.customerName}">John Doe</h5>
+                                <small class="text-muted">
+                                    Customer ID: <span th:text="${review.customer.customerId}">123</span>
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <span th:if="${review.isVerifiedStay}" class="badge bg-primary mb-1">
+                                    <i class="fas fa-check-circle"></i> Verified Stay
+                                </span>
+                                <br>
+                                <small class="text-muted">
+                                    <i class="far fa-calendar me-1"></i>
+                                    <span th:text="${#temporals.format(review.createdAt, 'MMM dd, yyyy HH:mm')}">Jan 15, 2025</span>
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Rating -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Rating</label>
+                            <div class="rating-stars">
+                                <span th:each="i : ${#numbers.sequence(1, 5)}">
+                                    <i class="fas fa-star" th:if="${i <= review.rating}"></i>
+                                    <i class="far fa-star" th:if="${i > review.rating}"></i>
+                                </span>
+                                <span class="ms-2 fs-6" th:text="${review.rating} + '/5'">5/5</span>
+                            </div>
+                        </div>
+
+                        <!-- Title -->
+                        <div class="mb-3" th:if="${review.title != null and !#strings.isEmpty(review.title)}">
+                            <label class="form-label fw-bold">Title</label>
+                            <p class="mb-0" th:text="${review.title}">Great Experience!</p>
+                        </div>
+
+                        <!-- Comment -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Review</label>
+                            <p class="mb-0" th:text="${review.comment}">The room was excellent...</p>
+                        </div>
+
+                        <!-- Room Info -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Room</label>
+                            <p class="mb-0">
+                                <span th:text="${review.room.roomType.typeName}">Deluxe Room</span> -
+                                Room <span th:text="${review.room.roomNumber}">101</span>
+                                <br>
+                                <small class="text-muted">
+                                    Room ID: <span th:text="${review.room.roomId}">1</span>
+                                </small>
+                            </p>
+                        </div>
+
+                        <!-- Booking Info -->
+                        <div class="mb-3" th:if="${review.booking != null}">
+                            <label class="form-label fw-bold">Booking Reference</label>
+                            <p class="mb-0">
+                                <span th:text="${review.booking.bookingReference}">BK123456</span>
+                                <br>
+                                <small class="text-muted">
+                                    Check-in: <span th:text="${#temporals.format(review.booking.checkInDate, 'MMM dd, yyyy')}">Jan 15</span> -
+                                    Check-out: <span th:text="${#temporals.format(review.booking.checkOutDate, 'MMM dd, yyyy')}">Jan 18</span>
+                                </small>
+                            </p>
+                        </div>
+
+                        <!-- Last Updated -->
+                        <small class="text-muted" th:if="${review.updatedAt != review.createdAt}">
+                            <i class="fas fa-edit me-1"></i>
+                            Last updated: <span th:text="${#temporals.format(review.updatedAt, 'MMM dd, yyyy HH:mm')}">Jan 16, 2025</span>
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Admin Response Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-reply me-2"></i>Admin Response
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Existing Response -->
+                        <div th:if="${review.adminResponse != null and !#strings.isEmpty(review.adminResponse)}"
+                             class="alert alert-info">
+                            <div class="mb-2">
+                                <strong>Current Response:</strong>
+                            </div>
+                            <p class="mb-2" th:text="${review.adminResponse}">Thank you for your feedback!</p>
+                            <small class="text-muted">
+                                <i class="far fa-clock me-1"></i>
+                                Responded: <span th:text="${#temporals.format(review.respondedAt, 'MMM dd, yyyy HH:mm')}">Jan 16, 2025</span>
+                            </small>
+                        </div>
+
+                        <!-- Response Form -->
+                        <form th:action="@{'/admin/reviews/respond/' + ${review.reviewId}}" method="post">
+                            <div class="mb-3">
+                                <label for="response" class="form-label">
+                                    <span th:if="${review.adminResponse != null}">Update Response</span>
+                                    <span th:unless="${review.adminResponse != null}">Add Response</span>
+                                </label>
+                                <textarea class="form-control" id="response" name="response" rows="4"
+                                          placeholder="Write your response to this review..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                <span th:if="${review.adminResponse != null}">Update Response</span>
+                                <span th:unless="${review.adminResponse != null}">Send Response</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Actions & Stats -->
+            <div class="col-lg-4">
+                <!-- Quick Actions Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-bolt me-2"></i>Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button th:if="${!review.isApproved}"
+                                    class="btn btn-success"
+                                    th:onclick="'approveReview(' + ${review.reviewId} + ')'">
+                                <i class="fas fa-check me-2"></i>Approve Review
+                            </button>
+                            <button th:if="${review.isApproved}"
+                                    class="btn btn-warning"
+                                    th:onclick="'rejectReview(' + ${review.reviewId} + ')'">
+                                <i class="fas fa-times me-2"></i>Unapprove Review
+                            </button>
+                            <a th:href="@{'/admin/reviews/room/' + ${review.room.roomId}}"
+                               class="btn btn-outline-primary">
+                                <i class="fas fa-bed me-2"></i>View All Room Reviews
+                            </a>
+                            <button class="btn btn-outline-danger"
+                                    th:onclick="'deleteReview(' + ${review.reviewId} + ')'">
+                                <i class="fas fa-trash me-2"></i>Delete Review
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Room Statistics Card -->
+                <div class="card" th:if="${roomStats != null}">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>Room Statistics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <h2 class="display-4 text-warning mb-0" th:text="${roomStats.averageRating}">4.5</h2>
+                            <small class="text-muted">Average Rating</small>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Reviews:</span>
+                            <strong th:text="${roomStats.totalReviews}">12</strong>
+                        </div>
+                        <div class="small">
+                            <div th:each="rating : ${#numbers.sequence(5, 1)}" class="d-flex justify-content-between mb-1">
+                                <span>
+                                    <span th:text="${rating}">5</span>
+                                    <i class="fas fa-star text-warning" style="font-size: 0.7rem;"></i>
+                                </span>
+                                <span th:text="${roomStats.ratingDistribution.get(rating)}">5</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Get CSRF token
+        const csrfToken = /*[[${_csrf.token}]]*/ '';
+        const csrfHeader = /*[[${_csrf.headerName}]]*/ '';
+
+        // Approve review
+        function approveReview(reviewId) {
+            if (confirm('Approve this review?')) {
+                const headers = {};
+                headers[csrfHeader] = csrfToken;
+
+                fetch('/admin/reviews/approve/' + reviewId, {
+                    method: 'POST',
+                    headers: headers
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred');
+                });
+            }
+        }
+
+        // Reject review
+        function rejectReview(reviewId) {
+            if (confirm('Unapprove this review?')) {
+                const headers = {};
+                headers[csrfHeader] = csrfToken;
+
+                fetch('/admin/reviews/reject/' + reviewId, {
+                    method: 'POST',
+                    headers: headers
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred');
+                });
+            }
+        }
+
+        // Delete review
+        function deleteReview(reviewId) {
+            if (confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/admin/reviews/delete/' + reviewId;
+
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = '_csrf';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+</div>
+</body>
+</html>

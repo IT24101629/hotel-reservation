@@ -8,7 +8,7 @@
         <div class="container">
             <!-- Page Header -->
             <section class="mt-2 mb-3 text-center">
-                <h1>📅 Complete Your Booking</h1>
+                <h1><i class="fas fa-calendar-check"></i> Complete Your Booking</h1>
                 <p>You're just one step away from confirming your reservation</p>
             </section>
             
@@ -17,7 +17,7 @@
                 <!-- Main Booking Form -->
                 <div class="card">
                     <div class="card-header">
-                        <h2>🏨 Booking Details</h2>
+                        <h2><i class="fas fa-hotel"></i> Booking Details</h2>
                     </div>
                     <div class="card-body">
                         <form id="bookingForm" th:action="@{/booking/submit}" method="post" data-validate="true">
@@ -34,7 +34,7 @@
                                 <div id="selectedRoomDisplay" class="card">
                                     <div class="card-body">
                                         <div id="roomSelectionPlaceholder">
-                                            <p class="text-center">🏨 Please select a room from the <a href="/rooms">rooms page</a> first</p>
+                                            <p class="text-center"><i class="fas fa-hotel"></i> Please select a room from the <a href="/rooms">rooms page</a> first</p>
                                         </div>
                                         <div id="selectedRoomInfo" style="display: none;">
                                             <h4 id="selectedRoomType">Room Type</h4>
@@ -169,7 +169,63 @@
                                               placeholder="Any additional information you'd like us to know about your stay..."></textarea>
                                 </div>
                             </div>
-                            
+
+                            <!-- Promo Code Section -->
+                            <div class="form-group">
+                                <h3><i class="fas fa-tag"></i> Promo Code</h3>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 1rem; align-items: end;">
+                                            <div>
+                                                <label for="promoCode">Enter Promo Code (Optional)</label>
+                                                <input type="text"
+                                                       id="promoCode"
+                                                       name="promoCode"
+                                                       class="form-control"
+                                                       placeholder="Enter your promo code (e.g., SUMMER25)"
+                                                       style="text-transform: uppercase;">
+                                                <small class="text-muted">Enter a valid promo code to get discount on your booking</small>
+                                            </div>
+                                            <div>
+                                                <button type="button"
+                                                        id="validatePromoBtn"
+                                                        class="btn btn-outline-primary"
+                                                        onclick="validatePromoCode()"
+                                                        disabled>
+                                                    🏷️ Apply
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Promo Code Status -->
+                                        <div id="promoStatus" class="mt-2" style="display: none;">
+                                            <div id="promoSuccess" class="alert alert-success" style="display: none;">
+                                                <strong>🎉 Promo Code Applied!</strong>
+                                                <p class="mb-1">Code: <strong id="appliedPromoCode"></strong></p>
+                                                <p class="mb-1">Discount: <strong id="promoDiscount"></strong></p>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePromoCode()">
+                                                    Remove Code
+                                                </button>
+                                            </div>
+                                            <div id="promoError" class="alert alert-danger" style="display: none;">
+                                                <strong><i class="fas fa-times-circle"></i> Invalid Promo Code</strong>
+                                                <p class="mb-0" id="promoErrorMessage"></p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Current Promotions (Display some active promotions) -->
+                                        <div class="mt-3">
+                                            <small class="text-muted">
+                                                <strong>Current Promotions:</strong>
+                                                WELCOME10 (10% off for new customers),
+                                                SUMMER25 (25% summer discount),
+                                                WEEKEND15 (15% off weekend stays)
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Arrival Information -->
                             <div class="form-group">
                                 <h3>Arrival Information</h3>
@@ -262,7 +318,7 @@
                 
                 <!-- Booking Summary Sidebar -->
                 <div class="booking-summary">
-                    <h3>📋 Booking Summary</h3>
+                    <h3><i class="fas fa-clipboard-list"></i> Booking Summary</h3>
                     
                     <div id="summaryContent">
                         <div id="summaryPlaceholder" class="text-center">
@@ -340,7 +396,7 @@
                             <!-- Payment Info -->
                             <div class="mt-2">
                                 <div class="alert alert-info" style="padding: 0.75rem; font-size: 0.9rem;">
-                                    <strong>💳 Payment Info:</strong><br>
+                                    <strong><i class="fas fa-credit-card"></i> Payment Info:</strong><br>
                                     Secure payment via PayHere<br>
                                     Supports Credit/Debit cards<br>
                                     Instant confirmation
@@ -349,9 +405,11 @@
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
         </div>
-    </div>
+    </section>
+</div>
     
     <!-- Additional JavaScript for booking page -->
     <th:block th:fragment="additional-js">
@@ -471,7 +529,7 @@
                         if (!roomSelected) {
                             submitBtn.textContent = '🏨 Please Select a Room First';
                         } else if (!termsAccepted || !detailsConfirmed) {
-                            submitBtn.textContent = '✅ Please Accept Terms & Confirm Details';
+                            submitBtn.textContent = '<i class="fas fa-check-square"></i> Please Accept Terms & Confirm Details';
                         }
                         console.log('Submit button disabled');
                     }
@@ -772,112 +830,312 @@
                 // Save when user leaves page
                 window.addEventListener('beforeunload', autoSaveForm);
             }, 1000);
+
+            // Promo Code Functions
+            let appliedPromoData = null;
+
+            function enablePromoValidation() {
+                const promoCode = document.getElementById('promoCode').value.trim();
+                const validateBtn = document.getElementById('validatePromoBtn');
+                validateBtn.disabled = promoCode.length === 0;
+            }
+
+            // Enable/disable promo button based on input
+            document.getElementById('promoCode').addEventListener('input', function() {
+                this.value = this.value.toUpperCase(); // Convert to uppercase
+                enablePromoValidation();
+
+                // Hide previous results when typing
+                document.getElementById('promoStatus').style.display = 'none';
+                document.getElementById('promoSuccess').style.display = 'none';
+                document.getElementById('promoError').style.display = 'none';
+            });
+
+            function validatePromoCode() {
+                const promoCode = document.getElementById('promoCode').value.trim();
+                if (!promoCode) {
+                    showAlert('Please enter a promo code', 'error');
+                    return;
+                }
+
+                // Check if we have booking data to validate against
+                const selectedRoomData = JSON.parse(sessionStorage.getItem('selectedRoomData') || '{}');
+                const checkInDate = document.getElementById('checkInDate').value;
+                const checkOutDate = document.getElementById('checkOutDate').value;
+                const numberOfGuests = document.getElementById('numberOfGuests').value;
+
+                if (!selectedRoomData.roomId || !checkInDate || !checkOutDate || !numberOfGuests) {
+                    showAlert('Please complete booking details first (room, dates, and guests)', 'error');
+                    return;
+                }
+
+                // Calculate current total for validation
+                const nights = calculateNights(checkInDate, checkOutDate);
+                const pricePerNight = selectedRoomData.pricePerNight;
+                const subtotal = nights * pricePerNight;
+                const serviceCharge = subtotal * 0.10;
+                const taxes = subtotal * 0.02;
+                const currentTotal = subtotal + serviceCharge + taxes;
+
+                const validateBtn = document.getElementById('validatePromoBtn');
+                const originalText = validateBtn.textContent;
+                validateBtn.disabled = true;
+                validateBtn.textContent = 'Validating...';
+
+                // Simulate validation (in real implementation, this would be an API call)
+                // For demo purposes, we'll simulate some promo codes
+                setTimeout(() => {
+                    let isValid = false;
+                    let discount = 0;
+                    let discountType = 'percentage';
+                    let errorMessage = '';
+
+                    switch (promoCode) {
+                        case 'WELCOME10':
+                            if (currentTotal >= 5000) {
+                                isValid = true;
+                                discount = 10; // 10%
+                                discountType = 'percentage';
+                            } else {
+                                errorMessage = 'Minimum booking amount of LKR 5,000 required for this promo code';
+                            }
+                            break;
+                        case 'SUMMER25':
+                            if (currentTotal >= 10000) {
+                                isValid = true;
+                                discount = 25; // 25%
+                                discountType = 'percentage';
+                            } else {
+                                errorMessage = 'Minimum booking amount of LKR 10,000 required for this promo code';
+                            }
+                            break;
+                        case 'FLAT2000':
+                            if (currentTotal >= 15000) {
+                                isValid = true;
+                                discount = 2000; // Fixed amount
+                                discountType = 'fixed';
+                            } else {
+                                errorMessage = 'Minimum booking amount of LKR 15,000 required for this promo code';
+                            }
+                            break;
+                        case 'WEEKEND15':
+                            isValid = true;
+                            discount = 15; // 15%
+                            discountType = 'percentage';
+                            break;
+                        default:
+                            errorMessage = 'Invalid promo code. Please check and try again.';
+                            break;
+                    }
+
+                    if (isValid) {
+                        let discountAmount = 0;
+                        if (discountType === 'percentage') {
+                            discountAmount = currentTotal * (discount / 100);
+                        } else {
+                            discountAmount = discount;
+                        }
+
+                        // Apply maximum discount limit for percentage discounts
+                        const maxDiscount = {
+                            'WELCOME10': 5000,
+                            'SUMMER25': 10000,
+                            'WEEKEND15': 7500
+                        };
+
+                        if (discountType === 'percentage' && maxDiscount[promoCode]) {
+                            discountAmount = Math.min(discountAmount, maxDiscount[promoCode]);
+                        }
+
+                        // Ensure discount doesn't exceed total
+                        discountAmount = Math.min(discountAmount, currentTotal);
+
+                        appliedPromoData = {
+                            code: promoCode,
+                            discountAmount: discountAmount,
+                            originalTotal: currentTotal,
+                            newTotal: currentTotal - discountAmount
+                        };
+
+                        showPromoSuccess(promoCode, discountAmount);
+                        updateBookingSummaryWithPromo();
+                    } else {
+                        showPromoError(errorMessage);
+                        appliedPromoData = null;
+                    }
+
+                    validateBtn.disabled = false;
+                    validateBtn.textContent = originalText;
+                }, 1000);
+            }
+
+            function showPromoSuccess(code, discountAmount) {
+                document.getElementById('promoStatus').style.display = 'block';
+                document.getElementById('promoSuccess').style.display = 'block';
+                document.getElementById('promoError').style.display = 'none';
+
+                document.getElementById('appliedPromoCode').textContent = code;
+                document.getElementById('promoDiscount').textContent = formatCurrency(discountAmount);
+
+                // Disable the input and change button text
+                document.getElementById('promoCode').disabled = true;
+                document.getElementById('validatePromoBtn').textContent = '<i class="fas fa-check"></i> Applied';
+                document.getElementById('validatePromoBtn').disabled = true;
+            }
+
+            function showPromoError(message) {
+                document.getElementById('promoStatus').style.display = 'block';
+                document.getElementById('promoSuccess').style.display = 'none';
+                document.getElementById('promoError').style.display = 'block';
+
+                document.getElementById('promoErrorMessage').textContent = message;
+            }
+
+            function removePromoCode() {
+                appliedPromoData = null;
+
+                // Reset form
+                document.getElementById('promoCode').value = '';
+                document.getElementById('promoCode').disabled = false;
+                document.getElementById('validatePromoBtn').textContent = '🏷️ Apply';
+                document.getElementById('validatePromoBtn').disabled = true;
+
+                // Hide status
+                document.getElementById('promoStatus').style.display = 'none';
+                document.getElementById('promoSuccess').style.display = 'none';
+                document.getElementById('promoError').style.display = 'none';
+
+                // Update summary
+                updateBookingSummary();
+            }
+
+            function updateBookingSummaryWithPromo() {
+                if (!appliedPromoData) {
+                    updateBookingSummary();
+                    return;
+                }
+
+                // First run normal update
+                updateBookingSummary();
+
+                // Then add promo discount
+                const priceBreakdown = document.querySelector('.summary-section');
+
+                // Remove existing promo elements
+                const existingPromoDiscount = document.getElementById('promoDiscountRow');
+                const existingNewTotal = document.getElementById('newTotalRow');
+                if (existingPromoDiscount) existingPromoDiscount.remove();
+                if (existingNewTotal) existingNewTotal.remove();
+
+                // Add promo discount row
+                const promoRow = document.createElement('div');
+                promoRow.className = 'summary-item';
+                promoRow.id = 'promoDiscountRow';
+                promoRow.style.color = '#28a745';
+                promoRow.innerHTML = `
+                    <span>Promo discount (${appliedPromoData.code}):</span>
+                    <span>-${formatCurrency(appliedPromoData.discountAmount)}</span>
+                `;
+                priceBreakdown.appendChild(promoRow);
+
+                // Update total amount
+                document.getElementById('totalPrice').textContent = formatCurrency(appliedPromoData.newTotal);
+                document.getElementById('totalPrice').style.color = '#28a745';
+            }
+
+            // Modify the original submitBooking function to include promo code
+            const originalSubmitBooking = submitBooking;
+            submitBooking = function() {
+                console.log('submitBooking called with promo data:', appliedPromoData);
+
+                // Create booking data with promo code if applied
+                const bookingData = {
+                    roomId: parseInt(document.getElementById('roomId').value),
+                    checkInDate: document.getElementById('checkInDate').value,
+                    checkOutDate: document.getElementById('checkOutDate').value,
+                    numberOfGuests: parseInt(document.getElementById('numberOfGuests').value),
+                    specialRequests: document.getElementById('specialRequests').value || '',
+                    customerNotes: document.getElementById('customerNotes').value || ''
+                };
+
+                console.log('Booking data object:', bookingData);
+
+                // Validate required fields (same as original)
+                if (!bookingData.roomId) {
+                    showAlert('Please select a room', 'error');
+                    return;
+                }
+
+                if (!bookingData.checkInDate || !bookingData.checkOutDate) {
+                    showAlert('Please select check-in and check-out dates', 'error');
+                    return;
+                }
+
+                if (!bookingData.numberOfGuests) {
+                    showAlert('Please select number of guests', 'error');
+                    return;
+                }
+
+                console.log('All validations passed, making API call');
+                showLoading('Creating your booking...');
+
+                const csrfToken = document.querySelector('input[name="_csrf"]').value;
+                console.log('CSRF token:', csrfToken);
+
+                // Choose endpoint based on whether promo code is applied
+                let endpoint = '/api/bookings/create';
+                let promoParam = '';
+
+                if (appliedPromoData && appliedPromoData.code) {
+                    endpoint = '/api/bookings/create-with-promo';
+                    promoParam = `?promoCode=${encodeURIComponent(appliedPromoData.code)}`;
+                    console.log('Using promo code endpoint with code:', appliedPromoData.code);
+                }
+
+                fetch(endpoint + promoParam, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify(bookingData)
+                })
+                .then(response => {
+                    console.log('API response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('API response data:', data);
+                    hideLoading();
+
+                    if (data.success && data.booking) {
+                        console.log('Booking created successfully:', data.booking.bookingReference);
+
+                        // Store booking data for payment
+                        sessionStorage.setItem('pendingBooking', JSON.stringify(data));
+
+                        // Redirect to payment
+                        console.log('Redirecting to payment page with bookingId:', data.booking.bookingId);
+                        window.location.href = '/payment?bookingId=' + data.booking.bookingId;
+                    } else {
+                        console.error('Booking creation failed:', data.error);
+                        showAlert(data.error || 'Error creating booking. Please try again.', 'error');
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    showAlert('Error creating booking. Please check your connection and try again.', 'error');
+                    console.error('Booking error:', error);
+                });
+            };
         </script>
     </th:block>
     
     <!-- Additional CSS for booking page -->
     <th:block th:fragment="additional-css">
         <style>
-            .booking-container {
-                display: grid;
-                grid-template-columns: 1fr 350px;
-                gap: 2rem;
-                margin: 2rem 0;
-            }
-            
-            .booking-summary {
-                background: white;
-                padding: 1.5rem;
-                border-radius: 10px;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-                height: fit-content;
-                position: sticky;
+            .sticky-top {
                 top: 2rem;
-            }
-            
-            .summary-section {
-                margin: 1.5rem 0;
-                padding-bottom: 1rem;
-                border-bottom: 1px solid #eee;
-            }
-            
-            .summary-section:last-child {
-                border-bottom: none;
-            }
-            
-            .summary-section h4 {
-                margin-bottom: 0.5rem;
-                color: #333;
-                font-size: 1rem;
-            }
-            
-            .summary-item {
-                display: flex;
-                justify-content: space-between;
-                margin: 0.5rem 0;
-                padding: 0.25rem 0;
-            }
-            
-            .total-amount {
-                border-top: 2px solid #3498db;
-                padding-top: 1rem;
-                margin-top: 1rem;
-            }
-            
-            .total-amount .summary-item {
-                font-size: 1.2rem;
-                font-weight: bold;
-                color: #2c3e50;
-            }
-            
-            .field-error {
-                color: #e74c3c;
-                font-size: 0.9rem;
-                margin-top: 0.25rem;
-            }
-            
-            .form-control.error {
-                border-color: #e74c3c;
-                box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
-            }
-            
-            .grid {
-                display: grid;
-            }
-            
-            @media (max-width: 768px) {
-                .booking-container {
-                    grid-template-columns: 1fr;
-                    gap: 1rem;
-                }
-                
-                .booking-summary {
-                    position: static;
-                    order: -1;
-                }
-                
-                .grid {
-                    grid-template-columns: 1fr !important;
-                }
-            }
-            
-            .alert-info {
-                background-color: #d1ecf1;
-                border: 1px solid #bee5eb;
-                color: #0c5460;
-                border-radius: 5px;
-            }
-            
-            .flex {
-                display: flex;
-            }
-            
-            .items-center {
-                align-items: center;
-            }
-            
-            .gap-2 {
-                gap: 0.5rem;
             }
         </style>
     </th:block>

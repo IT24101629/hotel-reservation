@@ -1,103 +1,244 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
 <head>
-    <title>My Bookings - Hotel Reservation System</title>
+    <title>My Bookings - Golden Palm Hotel</title>
 </head>
 <body>
 <div th:fragment="content">
-    <div class="container">
-        <!-- Page Header -->
-        <section class="mt-2 mb-3 text-center">
-            <h1>📋 My Bookings</h1>
-            <p>View and manage your hotel reservations</p>
-        </section>
+    <!-- Hero Section -->
+    <section class="hero-section bg-dark">
+        <div class="container">
+            <div class="text-center">
+                <div class="fade-in-up">
+                    <h1 class="display-4 mb-6 text-golden">
+                        <i class="fas fa-calendar-check me-3"></i>
+                        My Reservations
+                    </h1>
+                </div>
+                <div class="fade-in-up" style="animation-delay: 0.2s;">
+                    <p class="lead mb-8">
+                        View and manage your Golden Palm Hotel bookings and reservations
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-        <!-- Bookings List -->
-        <section class="mb-3" th:if="${bookings != null and !#lists.isEmpty(bookings)}">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Your Reservations</h2>
+    <!-- Bookings Section -->
+    <section class="py-5" th:if="${bookings != null and !#lists.isEmpty(bookings)}">
+        <div class="container">
+            <div class="card shadow-glow mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="fas fa-list-alt text-golden me-3"></i>
+                            Your Reservations
+                        </h2>
+                        <p class="mt-2 mb-0">Manage your current and past bookings</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="badge bg-golden text-dark fs-5 px-3 py-2">
+                            <span th:text="${#lists.size(bookings)}">3</span> Bookings
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-6 col-xl-4" th:each="booking : ${bookings}">
+                    <div class="card h-100 shadow-glow fade-in-up">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div class="booking-reference">
+                                <i class="fas fa-hashtag text-golden me-2"></i>
+                                <span th:text="${booking.bookingReference}">BK123456</span>
+                            </div>
+                            <div>
+                                <span class="badge bg-success" 
+                                      th:if="${booking.bookingStatus.name() == 'CONFIRMED'}">
+                                    <i class="fas fa-check-circle me-1"></i>CONFIRMED
+                                </span>
+                                <span class="badge bg-warning" 
+                                      th:if="${booking.bookingStatus.name() == 'PENDING'}">
+                                    <i class="fas fa-clock me-1"></i>PENDING
+                                </span>
+                                <span class="badge bg-danger" 
+                                      th:if="${booking.bookingStatus.name() == 'CANCELLED'}">
+                                    <i class="fas fa-times-circle me-1"></i>CANCELLED
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="room-info mb-3">
+                                <h5 class="card-title text-golden">
+                                    <i class="fas fa-bed me-2"></i>
+                                    <span th:text="${booking.roomType}">Deluxe Room</span>
+                                </h5>
+                                <p class="card-text">
+                                    <small class="text-muted">Room <span th:text="${booking.roomNumber}">101</span></small>
+                                </p>
+                            </div>
+                            
+                            <div class="booking-dates mb-3">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-sign-in-alt text-golden me-2"></i>
+                                            <div>
+                                                <small class="text-muted d-block">Check-in</small>
+                                                <span class="fw-bold" th:text="${#temporals.format(booking.checkInDate, 'MMM dd, yyyy')}">Jan 15, 2025</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-sign-out-alt text-golden me-2"></i>
+                                            <div>
+                                                <small class="text-muted d-block">Check-out</small>
+                                                <span class="fw-bold" th:text="${#temporals.format(booking.checkOutDate, 'MMM dd, yyyy')}">Jan 18, 2025</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="booking-details mb-3">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="text-center p-2 border rounded">
+                                            <i class="fas fa-users text-golden"></i>
+                                            <div>
+                                                <small class="text-muted d-block">Guests</small>
+                                                <span th:text="${booking.numberOfGuests} + ' Guest' + (${booking.numberOfGuests} > 1 ? 's' : '')">2 Guests</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="text-center p-2 border rounded">
+                                            <i class="fas fa-rupee-sign text-golden"></i>
+                                            <div>
+                                                <small class="text-muted d-block">Total</small>
+                                                <span class="fw-bold" th:text="'LKR ' + ${#numbers.formatDecimal(booking.totalAmount, 1, 2)}">LKR 54,000.00</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer">
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a th:href="@{'/booking/' + ${booking.bookingId}}" class="btn btn-outline-primary btn-sm flex-fill">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                                <a th:if="${booking.bookingStatus.name() == 'CONFIRMED' or booking.bookingStatus.name() == 'PENDING'}"
+                                   th:href="@{'/booking/' + ${booking.bookingId} + '/edit'}"
+                                   class="btn btn-outline-warning btn-sm flex-fill">
+                                    <i class="fas fa-edit me-1"></i>Edit
+                                </a>
+                                <a th:if="${booking.bookingStatus.name() == 'CONFIRMED'}"
+                                   th:href="@{'/reviews/add?roomId=' + ${booking.roomId} + '&bookingId=' + ${booking.bookingId}}"
+                                   class="btn btn-outline-success btn-sm flex-fill">
+                                    <i class="fas fa-star me-1"></i>Add Review
+                                </a>
+                                <button th:if="${booking.bookingStatus.name() == 'CONFIRMED' or booking.bookingStatus.name() == 'PENDING'}"
+                                        class="btn btn-outline-danger btn-sm flex-fill"
+                                        th:onclick="'cancelBooking(' + ${booking.bookingId} + ')'">
+                                    <i class="fas fa-times me-1"></i>Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- No Bookings Message -->
+    <section class="py-5" th:if="${bookings == null or #lists.isEmpty(bookings)}">
+        <div class="container">
+            <div class="text-center">
+                <div class="card shadow-glow">
+                    <div class="card-body p-5">
+                        <div class="mb-4">
+                            <i class="fas fa-calendar-times text-golden display-1"></i>
+                        </div>
+                        <h3 class="text-golden mb-3">No Reservations Found</h3>
+                        <p class="lead mb-4">You haven't made any bookings yet. Discover our luxurious accommodations and create unforgettable memories at Golden Palm Hotel.</p>
+                        <div class="d-flex gap-3 justify-content-center flex-wrap">
+                            <a href="/rooms" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>Explore Rooms
+                            </a>
+                            <a href="/dashboard" class="btn btn-secondary">
+                                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="py-5" th:if="${bookings != null and !#lists.isEmpty(bookings)}">
+        <div class="container">
+            <div class="card shadow-glow">
+                <div class="card-header text-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-bolt text-golden me-3"></i>
+                        Quick Actions
+                    </h3>
                 </div>
                 <div class="card-body">
-                    <div class="table">
-                        <table style="width: 100%;">
-                            <thead>
-                            <tr>
-                                <th>Booking Reference</th>
-                                <th>Room</th>
-                                <th>Check-in</th>
-                                <th>Check-out</th>
-                                <th>Guests</th>
-                                <th>Status</th>
-                                <th>Amount</th>
-                                <th>Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="booking : ${bookings}">
-                                <td th:text="${booking.bookingReference}">BK123456</td>
-                                <td th:text="${booking.roomNumber + ' (' + booking.roomType + ')'}">101 (Deluxe)</td>
-                                <td th:text="${#temporals.format(booking.checkInDate, 'MMM dd, yyyy')}">Jan 15, 2025</td>
-                                <td th:text="${#temporals.format(booking.checkOutDate, 'MMM dd, yyyy')}">Jan 18, 2025</td>
-                                <td th:text="${booking.numberOfGuests}">2</td>
-                                <td>
-                                            <span class="amenity-tag"
-                                                  th:classappend="${booking.bookingStatus.name() == 'CONFIRMED' ? 'confirmed' :
-                                                                 booking.bookingStatus.name() == 'PENDING' ? 'pending' :
-                                                                 booking.bookingStatus.name() == 'CANCELLED' ? 'cancelled' : ''}"
-                                                  th:text="${booking.bookingStatus}">CONFIRMED</span>
-                                </td>
-                                <td th:text="'LKR ' + ${#numbers.formatDecimal(booking.totalAmount, 1, 2)}">LKR 54,000.00</td>
-                                <td>
-                                    <a th:href="@{'/booking/' + ${booking.bookingId}}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">View</a>
-                                    <a th:if="${booking.bookingStatus.name() == 'CONFIRMED' or booking.bookingStatus.name() == 'PENDING'}"
-                                       th:href="@{'/booking/' + ${booking.bookingId} + '/edit'}" 
-                                       class="btn btn-primary" 
-                                       style="padding: 0.5rem 1rem; margin-left: 0.5rem;">Edit</a>
-                                    <button th:if="${booking.bookingStatus.name() == 'CONFIRMED' or booking.bookingStatus.name() == 'PENDING'}"
-                                            class="btn btn-danger"
-                                            style="padding: 0.5rem 1rem; margin-left: 0.5rem;"
-                                            th:onclick="'cancelBooking(' + ${booking.bookingId} + ')'">Cancel</button>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <a href="/rooms" class="text-decoration-none">
+                                <div class="card h-100 border-0 bg-transparent text-center p-3 quick-action-hover">
+                                    <div class="card-body">
+                                        <i class="fas fa-plus-circle text-golden display-6 mb-3"></i>
+                                        <h5 class="text-golden">Book New Room</h5>
+                                        <p class="small text-muted">Find your perfect stay</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <a href="/dashboard" class="text-decoration-none">
+                                <div class="card h-100 border-0 bg-transparent text-center p-3 quick-action-hover">
+                                    <div class="card-body">
+                                        <i class="fas fa-tachometer-alt text-golden display-6 mb-3"></i>
+                                        <h5 class="text-golden">Dashboard</h5>
+                                        <p class="small text-muted">Account overview</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <a href="/profile" class="text-decoration-none">
+                                <div class="card h-100 border-0 bg-transparent text-center p-3 quick-action-hover">
+                                    <div class="card-body">
+                                        <i class="fas fa-user-cog text-golden display-6 mb-3"></i>
+                                        <h5 class="text-golden">Profile Settings</h5>
+                                        <p class="small text-muted">Manage account</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </section>
-
-        <!-- No Bookings Message -->
-        <section class="mb-3" th:if="${bookings == null or #lists.isEmpty(bookings)}">
-            <div class="card">
-                <div class="card-body text-center">
-                    <h3>📅 No Bookings Found</h3>
-                    <p>You haven't made any bookings yet. Start exploring our amazing rooms and make your first reservation!</p>
-                    <a href="/rooms" class="btn btn-primary">Browse Available Rooms</a>
-                </div>
-            </div>
-        </section>
-
-        <!-- Quick Actions -->
-        <section class="mb-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <h3>Quick Actions</h3>
-                    <div class="mt-2">
-                        <a href="/rooms" class="btn btn-primary">🏨 Book New Room</a>
-                        <a href="/dashboard" class="btn btn-secondary">🏠 Back to Dashboard</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
+        </div>
+    </section>
 </div>
 
 <!-- Additional JavaScript -->
 <th:block th:fragment="additional-js">
     <script>
         function cancelBooking(bookingId) {
-            if (confirm('Are you sure you want to remove this booking? This action cannot be undone and a cancellation email will be sent.')) {
+            if (confirm('Are you sure you want to cancel this booking? This action cannot be undone and a cancellation email will be sent.')) {
                 fetch('/api/bookings/' + bookingId + '/cancel', {
                     method: 'POST',
                     headers: {
@@ -111,7 +252,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        window.location.href = '/dashboard';
+                        window.location.reload();
                     } else {
                         alert('❌ Error cancelling booking: ' + (data.error || 'Unknown error'));
                     }
@@ -125,37 +266,5 @@
     </script>
 </th:block>
 
-<!-- Additional CSS -->
-<th:block th:fragment="additional-css">
-    <style>
-        .amenity-tag.confirmed {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .amenity-tag.pending {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .amenity-tag.cancelled {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .btn-danger {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .btn-danger:hover {
-            background-color: #c82333;
-        }
-    </style>
-</th:block>
 </body>
 </html>

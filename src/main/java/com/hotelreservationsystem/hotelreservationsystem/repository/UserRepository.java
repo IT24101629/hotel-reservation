@@ -1,6 +1,7 @@
 package com.hotelreservationsystem.hotelreservationsystem.repository;
 
 import com.hotelreservationsystem.hotelreservationsystem.model.User;
+import com.hotelreservationsystem.hotelreservationsystem.model.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -45,8 +46,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Count active users
     long countByIsActiveTrue();
     
-    // Count users by role
+    // Count users by role (String)
     long countByRole(String role);
+
+    // Count users by UserRole enum
+    @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role")
+    long countByUserRole(@Param("role") UserRole role);
     
     // Find users by partial name search
     @Query("SELECT u FROM User u WHERE " +

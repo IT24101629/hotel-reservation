@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
+<head>
+    <title th:text="${room.roomType.typeName} + ' - Golden Palm Hotel'">Room Detail</title>
+    <style>
+        .rating-stars {
+            color: #ffc107;
+            font-size: 1.2rem;
+        }
+        .rating-distribution {
+            font-size: 0.875rem;
+        }
+        .rating-bar {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .rating-bar-fill {
+            height: 100%;
+            background-color: #ffc107;
+            transition: width 0.3s;
+        }
+        .review-card {
+            border-left: 3px solid #ffc107;
+        }
+        .verified-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body>
+<div th:fragment="content">
+    <!-- Room Hero Section -->
+    <section class="hero-section bg-dark">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="fade-in-up">
+                        <h1 class="display-4 mb-3 text-golden">
+                            <i class="fas fa-bed me-3"></i>
+                            <span th:text="${room.roomType.typeName}">Deluxe Room</span>
+                        </h1>
+                        <p class="lead">
+                            Room <span th:text="${room.roomNumber}">101</span> -
+                            <span class="badge" th:classappend="${room.isAvailable} ? 'bg-success' : 'bg-danger'">
+                                <i class="fas" th:classappend="${room.isAvailable} ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                                <span th:text="${room.isAvailable} ? 'Available' : 'Occupied'">Available</span>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="fade-in-up" style="animation-delay: 0.2s;">
+                        <h2 class="text-golden mb-2">
+                            LKR <span th:text="${#numbers.formatDecimal(room.pricePerNight, 1, 2)}">18,000.00</span>
+                        </h2>
+                        <small class="text-muted">per night</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Room Details Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row g-4">
+                <!-- Left Column: Room Info -->
+                <div class="col-lg-8">
+                    <!-- Room Image -->
+                    <div class="card shadow-glow mb-4">
+                        <img th:src="${room.imageUrl != null and !#strings.isEmpty(room.imageUrl) ? room.imageUrl : '/images/room-default.jpg'}"
+                             th:alt="${room.roomType.typeName}"
+                             class="card-img-top"
+                             style="max-height: 400px; object-fit: cover;"
+                             onerror="this.src='/images/room-default.jpg'">
+                    </div>
+
+                    <!-- Room Description -->
+                    <div class="card shadow-glow mb-4">
+                        <div class="card-body p-4">
+                            <h3 class="text-golden mb-3">
+                                <i class="fas fa-info-circle me-2"></i>Room Description
+                            </h3>
+                            <p th:text="${room.description != null and !#strings.isEmpty(room.description) ? room.description : room.roomType.description}">Experience luxury and comfort...</p>
+                        </div>
+                    </div>
+
+                    <!-- Room Features -->
+                    <div class="card shadow-glow mb-4">
+                        <div class="card-body p-4">
+                            <h3 class="text-golden mb-3">
+                                <i class="fas fa-star me-2"></i>Amenities & Features
+                            </h3>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-users text-golden me-3"></i>
+                                        <span>Max Occupancy: <strong th:text="${room.roomType.maxOccupancy}">2</strong> guests</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-bed text-golden me-3"></i>
+                                        <span>Bed Type: <strong th:text="${room.roomType.bedType}">King</strong></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-expand-arrows-alt text-golden me-3"></i>
+                                        <span>Size: <strong th:text="${room.roomType.roomSize} + ' sqft'">400 sqft</strong></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-door-open text-golden me-3"></i>
+                                        <span>Floor: <strong th:text="${room.floorNumber}">1</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reviews Section -->
+                    <div class="card shadow-glow" id="reviews-section">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h3 class="mb-0">
+                                    <i class="fas fa-comments text-golden me-2"></i>Guest Reviews
+                                </h3>
+                                <a th:if="${canReview}" th:href="@{/reviews/add(roomId=${room.roomId})}"
+                                   class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus me-1"></i>Write Review
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- Rating Summary -->
+                            <div th:if="${roomStats.totalReviews > 0}" class="row mb-4">
+                                <div class="col-md-4 text-center border-end">
+                                    <h1 class="display-3 text-golden mb-2" th:text="${roomStats.averageRating}">4.5</h1>
+                                    <div class="rating-stars mb-2">
+                                        <span th:each="i : ${#numbers.sequence(1, 5)}">
+                                            <i class="fas fa-star" th:if="${i <= roomStats.averageRating}"></i>
+                                            <i class="far fa-star" th:if="${i > roomStats.averageRating}"></i>
+                                        </span>
+                                    </div>
+                                    <p class="text-muted mb-0">
+                                        <span th:text="${roomStats.totalReviews}">12</span> reviews
+                                    </p>
+                                </div>
+                                <div class="col-md-8">
+                                    <h5 class="mb-3">Rating Distribution</h5>
+                                    <div class="rating-distribution">
+                                        <div th:each="rating : ${#numbers.sequence(5, 1)}" class="mb-2">
+                                            <div class="d-flex align-items-center">
+                                                <span class="me-2" style="width: 60px;">
+                                                    <span th:text="${rating}">5</span>
+                                                    <i class="fas fa-star text-warning" style="font-size: 0.75rem;"></i>
+                                                </span>
+                                                <div class="rating-bar flex-grow-1 me-2">
+                                                    <div class="rating-bar-fill"
+                                                         th:style="'width: ' + ${roomStats.totalReviews > 0 ? (roomStats.ratingDistribution.get(rating) * 100 / roomStats.totalReviews) : 0} + '%'">
+                                                    </div>
+                                                </div>
+                                                <span class="text-muted" style="width: 40px;"
+                                                      th:text="${roomStats.ratingDistribution.get(rating)}">5</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Individual Reviews -->
+                            <div th:if="${reviews != null and !#lists.isEmpty(reviews)}">
+                                <div class="review-card card mb-3" th:each="review : ${reviews}">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h5 class="mb-1" th:text="${review.customerName}">John Doe</h5>
+                                                <div class="rating-stars mb-1">
+                                                    <span th:each="i : ${#numbers.sequence(1, 5)}">
+                                                        <i class="fas fa-star" th:if="${i <= review.rating}"></i>
+                                                        <i class="far fa-star" th:if="${i > review.rating}"></i>
+                                                    </span>
+                                                </div>
+                                                <small class="text-muted">
+                                                    <i class="far fa-calendar me-1"></i>
+                                                    <span th:text="${#temporals.format(review.createdAt, 'MMM dd, yyyy')}">Jan 15, 2025</span>
+                                                </small>
+                                            </div>
+                                            <span th:if="${review.isVerifiedStay}" class="badge verified-badge text-white">
+                                                <i class="fas fa-check-circle"></i> Verified Stay
+                                            </span>
+                                        </div>
+
+                                        <h6 class="fw-bold mt-3 mb-2" th:if="${review.title != null and !#strings.isEmpty(review.title)}"
+                                            th:text="${review.title}">Great Experience!</h6>
+                                        <p class="mb-2" th:text="${review.comment}">The room was excellent...</p>
+
+                                        <!-- Admin Response -->
+                                        <div th:if="${review.adminResponse != null and !#strings.isEmpty(review.adminResponse)}"
+                                             class="mt-3 p-3 bg-gradient-card rounded border-gradient">
+                                            <small class="text-muted d-block mb-2">
+                                                <i class="fas fa-reply text-golden"></i>
+                                                <strong>Hotel Response</strong>
+                                            </small>
+                                            <p class="mb-0 small" th:text="${review.adminResponse}">Thank you for your feedback!</p>
+                                            <small class="text-muted">
+                                                <i class="far fa-clock me-1"></i>
+                                                <span th:text="${#temporals.format(review.respondedAt, 'MMM dd, yyyy')}">Jan 16, 2025</span>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- No Reviews Message -->
+                            <div th:if="${reviews == null or #lists.isEmpty(reviews)}" class="text-center py-5">
+                                <i class="fas fa-star-half-alt text-golden display-4 mb-3"></i>
+                                <h5>No Reviews Yet</h5>
+                                <p class="text-muted">Be the first to share your experience!</p>
+                                <a th:if="${canReview}" th:href="@{/reviews/add(roomId=${room.roomId})}"
+                                   class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i>Write the First Review
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Booking Card -->
+                <div class="col-lg-4">
+                    <div class="card shadow-glow sticky-top" style="top: 20px;">
+                        <div class="card-body p-4">
+                            <h4 class="text-golden mb-4 text-center">Book This Room</h4>
+
+                            <div class="text-center mb-4">
+                                <h2 class="text-golden mb-0">
+                                    LKR <span th:text="${#numbers.formatDecimal(room.pricePerNight, 1, 2)}">18,000.00</span>
+                                </h2>
+                                <small class="text-muted">per night</small>
+                            </div>
+
+                            <form action="/booking" method="get">
+                                <input type="hidden" name="roomId" th:value="${room.roomId}">
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-calendar-check me-2"></i>Check-in Date
+                                    </label>
+                                    <input type="date" name="checkInDate" class="form-control" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-calendar-times me-2"></i>Check-out Date
+                                    </label>
+                                    <input type="date" name="checkOutDate" class="form-control" required>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label">
+                                        <i class="fas fa-users me-2"></i>Number of Guests
+                                    </label>
+                                    <select name="numberOfGuests" class="form-select" required>
+                                        <option value="" selected>Select guests</option>
+                                        <option th:each="i : ${#numbers.sequence(1, room.roomType.maxOccupancy)}"
+                                                th:value="${i}"
+                                                th:text="${i} + ' Guest' + (${i} > 1 ? 's' : '')">1 Guest</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-lg w-100"
+                                        th:disabled="${!room.isAvailable}">
+                                    <i class="fas fa-calendar-check me-2"></i>Book Now
+                                </button>
+
+                                <div th:if="${!room.isAvailable}" class="alert alert-warning mt-3 mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    This room is currently occupied
+                                </div>
+                            </form>
+
+                            <hr class="my-4">
+
+                            <div class="text-center">
+                                <a href="/rooms" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Browse More Rooms
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+</body>
+</html>

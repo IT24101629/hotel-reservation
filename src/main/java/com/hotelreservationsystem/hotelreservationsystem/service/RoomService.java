@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -133,5 +134,18 @@ public class RoomService {
 
     public List<Room> findRoomsInPriceRange(Double minPrice, Double maxPrice) {
         return roomRepository.findRoomsInPriceRange(minPrice, maxPrice);
+    }
+
+    // Admin-specific methods
+    public Optional<Room> getRoomById(Long id) {
+        return roomRepository.findById(id);
+    }
+
+    public Room saveOrUpdateRoom(Room room) {
+        return roomRepository.save(room);
+    }
+
+    public void deleteRoomById(Long id) {
+        roomRepository.deleteById(id);
     }
 }

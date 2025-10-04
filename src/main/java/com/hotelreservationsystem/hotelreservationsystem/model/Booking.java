@@ -94,7 +94,16 @@ public class Booking {
     
     @Column(name = "qr_code_path", length = 500)
     private String qrCodePath;
-    
+
+    @Column(name = "promo_code", length = 20)
+    private String promoCode;
+
+    @Column(name = "discount_amount", precision = 10, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
+    @Column(name = "original_amount", precision = 10, scale = 2)
+    private BigDecimal originalAmount;
+
     // One-to-many relationship with Payment
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Payment> payments;
@@ -288,11 +297,35 @@ public class Booking {
     public void setQrCodePath(String qrCodePath) {
         this.qrCodePath = qrCodePath;
     }
-    
+
+    public String getPromoCode() {
+        return promoCode;
+    }
+
+    public void setPromoCode(String promoCode) {
+        this.promoCode = promoCode;
+    }
+
+    public BigDecimal getDiscountAmount() {
+        return discountAmount;
+    }
+
+    public void setDiscountAmount(BigDecimal discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    public BigDecimal getOriginalAmount() {
+        return originalAmount;
+    }
+
+    public void setOriginalAmount(BigDecimal originalAmount) {
+        this.originalAmount = originalAmount;
+    }
+
     public List<Payment> getPayments() {
         return payments;
     }
-    
+
     public void setPayments(List<Payment> payments) {
         this.payments = payments;
     }

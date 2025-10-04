@@ -341,9 +341,11 @@
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
         </div>
-    </div>
+    </section>
+</div>
     
     <!-- Additional JavaScript for payment page -->
     <th:block th:fragment="additional-js">
@@ -697,85 +699,25 @@
     <!-- Additional CSS for payment page -->
     <th:block th:fragment="additional-css">
         <style>
-            .payment-methods {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 1rem;
-                margin: 1rem 0;
-            }
-            
             .payment-method {
-                padding: 1.5rem;
-                border: 2px solid #ddd;
-                border-radius: 10px;
-                text-align: center;
                 cursor: pointer;
                 transition: all 0.3s ease;
-                background: white;
             }
             
             .payment-method:hover {
-                border-color: #3498db;
-                background: #f8f9ff;
+                background: #f8f9fa !important;
+                border-color: #ffd700 !important;
                 transform: translateY(-2px);
             }
             
             .payment-method.selected {
-                border-color: #3498db;
-                background: #e3f2fd;
-                box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+                background: #fff3cd !important;
+                border-color: #ffd700 !important;
+                box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
             }
             
-            .payment-method h4 {
-                margin: 0 0 0.5rem 0;
-                color: #2c3e50;
-            }
-            
-            .payment-method p {
-                margin: 0 0 0.25rem 0;
-                color: #666;
-            }
-            
-            .payment-method small {
-                color: #999;
-                font-size: 0.8rem;
-            }
-            
-            .payment-form-summary {
-                background: #f8f9fa;
-                padding: 1rem;
-                border-radius: 5px;
-                margin: 1rem 0;
-            }
-            
-            .payment-form-summary h4 {
-                margin: 0 0 1rem 0;
-                color: #2c3e50;
-            }
-            
-            .bank-details {
-                background: #f8f9fa;
-                padding: 1rem;
-                border-radius: 5px;
-                margin: 1rem 0;
-            }
-            
-            .bank-details p {
-                margin: 0.5rem 0;
-            }
-            
-            .grid {
-                display: grid;
-            }
-            
-            @media (max-width: 768px) {
-                .payment-methods {
-                    grid-template-columns: 1fr;
-                }
-                
-                .booking-container {
-                    grid-template-columns: 1fr;
-                }
+            .sticky-top {
+                top: 2rem;
             }
         </style>
     </th:block>

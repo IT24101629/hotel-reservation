@@ -255,4 +255,142 @@ public class BookingController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+    @PostMapping("/create-with-promo")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> createBookingWithPromoCode(@Valid @RequestBody BookingRequestDTO bookingRequest,
+                                                                           @RequestParam(required = false) String promoCode,
+                                                                           Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            System.err.println("=== BOOKING CREATION WITH PROMO CODE REQUEST ===");
+            System.err.println("BookingController: Received booking request with promo code: " + promoCode);
+
+            BookingResponseDTO booking;
+            if (promoCode != null && !promoCode.trim().isEmpty()) {
+                booking = bookingService.createBookingWithPromoCode(bookingRequest, promoCode.trim());
+            } else {
+                booking = bookingService.createBooking(bookingRequest);
+            }
+
+            response.put("success", true);
+            response.put("message", "Booking created successfully" + (promoCode != null ? " with promo code applied" : ""));
+            response.put("booking", booking);
+
+            System.err.println("BookingController: Booking created with reference: " + booking.getBookingReference());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            System.err.println("BookingController: Error creating booking with promo code: " + e.getMessage());
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/{id}/apply-promo")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> applyPromoCode(@PathVariable Long id,
+                                                              @RequestParam String promoCode,
+                                                              Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            System.out.println("🏷️ Apply promo code request for booking ID: " + id + ", code: " + promoCode);
+
+            // Verify user owns this booking
+            String userEmail = authentication.getName();
+            BookingResponseDTO existingBooking = bookingService.getBookingById(id);
+
+            if (!existingBooking.getCustomerEmail().equals(userEmail)) {
+                response.put("success", false);
+                response.put("error", "You can only apply promo codes to your own bookings");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            BookingResponseDTO updatedBooking = bookingService.applyPromoCodeToBooking(id, promoCode);
+
+            response.put("success", true);
+            response.put("message", "Promo code applied successfully");
+            response.put("booking", updatedBooking);
+            response.put("discountAmount", updatedBooking.getDiscountAmount());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            System.err.println("❌ Error applying promo code: " + e.getMessage());
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/{id}/remove-promo")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> removePromoCode(@PathVariable Long id,
+                                                               Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            System.out.println("🗑️ Remove promo code request for booking ID: " + id);
+
+            // Verify user owns this booking
+            String userEmail = authentication.getName();
+            BookingResponseDTO existingBooking = bookingService.getBookingById(id);
+
+            if (!existingBooking.getCustomerEmail().equals(userEmail)) {
+                response.put("success", false);
+                response.put("error", "You can only modify your own bookings");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            BookingResponseDTO updatedBooking = bookingService.removePromoCodeFromBooking(id);
+
+            response.put("success", true);
+            response.put("message", "Promo code removed successfully");
+            response.put("booking", updatedBooking);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            System.err.println("❌ Error removing promo code: " + e.getMessage());
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/validate-promo")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> validatePromoCode(@RequestParam String promoCode,
+                                                                 @RequestParam Long bookingId,
+                                                                 Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            System.out.println("🔍 Validate promo code request: " + promoCode + " for booking: " + bookingId);
+
+            // Verify user owns this booking
+            String userEmail = authentication.getName();
+            BookingResponseDTO existingBooking = bookingService.getBookingById(bookingId);
+
+            if (!existingBooking.getCustomerEmail().equals(userEmail)) {
+                response.put("success", false);
+                response.put("error", "You can only validate promo codes for your own bookings");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            Map<String, Object> validationResult = bookingService.validatePromoCode(promoCode, bookingId);
+            return ResponseEntity.ok(validationResult);
+
+        } catch (Exception e) {
+            System.err.println("❌ Error validating promo code: " + e.getMessage());
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }

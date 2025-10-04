@@ -156,7 +156,7 @@ public class DataInitializer implements CommandLineRunner {
         room.setPricePerNight(price);
         room.setDescription(description);
         room.setAmenities(roomType.getAmenities());
-        room.setImageUrl("/images/rooms/" + roomType.getTypeName().toLowerCase().replace(" ", "-") + ".jpg");
+        room.setImageUrl("/images/room-default.jpg");
         room.setCreatedAt(LocalDateTime.now());
         room.setUpdatedAt(LocalDateTime.now());
         roomRepository.save(room);

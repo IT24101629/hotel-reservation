@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Promotion - Gold Palm Hotel Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/admin-style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Admin Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-gradient-card sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Admin Panel</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/dashboard">
+                                <i class="bi bi-house-door"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/bookings">
+                                <i class="bi bi-calendar-check"></i> Bookings
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/rooms">
+                                <i class="bi bi-building"></i> Rooms
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/admin/promotions">
+                                <i class="bi bi-tags"></i> Promotions
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/staff">
+                                <i class="bi bi-people"></i> Staff
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logout">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Edit Promotion</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <a th:href="@{'/admin/promotions/view/' + ${promotion.promotionId}}" class="btn btn-outline-info">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <a href="/admin/promotions" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Promotion Info -->
+                <div class="alert alert-info mb-4">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <i class="bi bi-info-circle fs-4"></i>
+                        </div>
+                        <div class="col">
+                            <h6 class="mb-1">Editing: <span th:text="${promotion.title}"></span></h6>
+                            <p class="mb-0">
+                                Promo Code: <strong th:text="${promotion.promoCode}"></strong> |
+                                Status: <span th:if="${promotion.isActive}" class="badge bg-success">Active</span>
+                                <span th:unless="${promotion.isActive}" class="badge bg-secondary">Inactive</span> |
+                                Usage: <span th:text="${promotion.usageCount ?: 0}"></span>/<span th:text="${promotion.usageLimit ?: '∞'}"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <form th:action="@{'/admin/promotions/edit/' + ${promotion.promotionId}}" th:object="${promotion}" method="post" enctype="multipart/form-data">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Promotion Details</h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Basic Information -->
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="promoCode" class="form-label">
+                                                    Promo Code <span class="text-danger">*</span>
+                                                </label>
+                                                <input type="text" class="form-control" id="promoCode"
+                                                       th:field="*{promoCode}" th:errorclass="is-invalid"
+                                                       placeholder="e.g., SUMMER25" required>
+                                                <div class="invalid-feedback" th:if="${#fields.hasErrors('promoCode')}"
+                                                     th:errors="*{promoCode}"></div>
+                                                <div class="form-text">Unique code customers will use to apply the discount</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="title" class="form-label">
+                                                    Title <span class="text-danger">*</span>
+                                                </label>
+                                                <input type="text" class="form-control" id="title"
+                                                       th:field="*{title}" th:errorclass="is-invalid"
+                                                       placeholder="e.g., Summer Special Discount" required>
+                                                <div class="invalid-feedback" th:if="${#fields.hasErrors('title')}"
+                                                     th:errors="*{title}"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <div class="mb-3">
+                                        <label for="description" class="form-label">Description</label>
+                                        <textarea class="form-control" id="description" rows="3"
+                                                  th:field="*{description}" th:errorclass="is-invalid"
+                                                  placeholder="Describe the promotion and its benefits"></textarea>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}"
+                                             th:errors="*{description}"></div>
+                                    </div>
+
+                                    <!-- Discount Information -->
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="discountType" class="form-label">
+                                                    Discount Type <span class="text-danger">*</span>
+                                                </label>
+                                                <select class="form-select" id="discountType" th:field="*{discountType}"
+                                                        th:errorclass="is-invalid" required onchange="toggleDiscountFields()">
+                                                    <option value="">Select discount type</option>
+                                                    <option th:each="type : ${discountTypes}"
+                                                            th:value="${type}" th:text="${type == 'PERCENTAGE' ? 'Percentage (%)' : 'Fixed Amount (LKR)'}">
+                                                    </option>
+                                                </select>
+                                                <div class="invalid-feedback" th:if="${#fields.hasErrors('discountType')}"
+                                                     th:errors="*{discountType}"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="discountValue" class="form-label">
+                                                    Discount Value <span class="text-danger">*</span>
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text" id="discountPrefix">%</span>
+                                                    <input type="number" class="form-control" id="discountValue"
+                                                           th:field="*{discountValue}" th:errorclass="is-invalid"
+                                                           step="0.01" min="0.01" required>
+                                                </div>
+                                                <div class="invalid-feedback" th:if="${#fields.hasErrors('discountValue')}"
+                                                     th:errors="*{discountValue}"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Advanced Settings -->
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="minimumBookingAmount" class="form-label">Minimum Booking Amount (LKR)</label>
+                                                <input type="number" class="form-control" id="minimumBookingAmount"
+                                                       th:field="*{minimumBookingAmount}" th:errorclass="is-invalid"
+                                                       step="0.01" min="0" placeholder="0.00">
+                                                <div class="invalid-feedback" th:if="${#fields.hasErrors('minimumBookingAmount')}"
+                                                     th:errors="*{minimumBookingAmount}"></div>
+                                                <div class="form-text">Leave empty for no minimum requirement</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="maximumDiscount" class="form-label">Maximum Discount (LKR)</label>
+                                                <input type="number" class="form-control" id="maximumDiscount"
+                                                       th:field="*{maximumDiscount}" th:errorclass="is-invalid"
+                                                       step="0.01" min="0" placeholder="No limit">
+                                                <div class="invalid-feedback" th:if="${#fields.hasErrors('maximumDiscount')}"
+                                                     th:errors="*{maximumDiscount}"></div>
+                                                <div class="form-text">For percentage discounts only</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Validity Period -->
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="startDate" class="form-label">
+                                                    Start Date & Time <span class="text-danger">*</span>
+                                                </label>
+                                                <input type="datetime-local" class="form-control" id="startDate"
+                                                       th:field="*{startDate}" th:errorclass="is-invalid" required>
+                                                <div class="invalid-feedback" th:if="${#fields.hasErrors('startDate')}"
+                                                     th:errors="*{startDate}"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="endDate" class="form-label">
+                                                    End Date & Time <span class="text-danger">*</span>
+                                                </label>
+                                                <input type="datetime-local" class="form-control" id="endDate"
+                                                       th:field="*{endDate}" th:errorclass="is-invalid" required>
+                                                <div class="invalid-feedback" th:if="${#fields.hasErrors('endDate')}"
+                                                     th:errors="*{endDate}"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Usage Limit -->
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="usageLimit" class="form-label">Usage Limit</label>
+                                                <input type="number" class="form-control" id="usageLimit"
+                                                       th:field="*{usageLimit}" th:errorclass="is-invalid"
+                                                       min="1" placeholder="Unlimited">
+                                                <div class="invalid-feedback" th:if="${#fields.hasErrors('usageLimit')}"
+                                                     th:errors="*{usageLimit}"></div>
+                                                <div class="form-text">Leave empty for unlimited usage</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Current Usage</label>
+                                                <div class="form-control-plaintext">
+                                                    <span th:text="${promotion.usageCount ?: 0}"></span> uses
+                                                    <span th:if="${promotion.usageLimit != null}">
+                                                        of <span th:text="${promotion.usageLimit}"></span> allowed
+                                                    </span>
+                                                    <span class="text-muted">(Read only)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Terms and Conditions -->
+                                    <div class="mb-3">
+                                        <label for="termsConditions" class="form-label">Terms and Conditions</label>
+                                        <textarea class="form-control" id="termsConditions" rows="3"
+                                                  th:field="*{termsConditions}" th:errorclass="is-invalid"
+                                                  placeholder="Enter any terms and conditions for this promotion"></textarea>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('termsConditions')}"
+                                             th:errors="*{termsConditions}"></div>
+                                    </div>
+
+                                    <!-- Current Image Display -->
+                                    <div th:if="${promotion.imagePath != null}" class="mb-3">
+                                        <label class="form-label">Current Image</label>
+                                        <div>
+                                            <img th:src="${promotion.imagePath}" class="img-thumbnail" style="max-width: 200px;" th:alt="${promotion.title}">
+                                        </div>
+                                    </div>
+
+                                    <!-- Promotion Image -->
+                                    <div class="mb-3">
+                                        <label for="image" class="form-label">
+                                            <span th:if="${promotion.imagePath != null}">Update Promotion Image</span>
+                                            <span th:unless="${promotion.imagePath != null}">Promotion Image</span>
+                                        </label>
+                                        <input type="file" class="form-control" id="image" name="image"
+                                               accept="image/jpeg,image/png,image/gif,image/webp">
+                                        <div class="form-text">
+                                            <span th:if="${promotion.imagePath != null}">Leave empty to keep current image. </span>
+                                            Upload a new image for this promotion (JPG, PNG, GIF, WebP - Max 5MB)
+                                        </div>
+                                        <div id="imagePreview" class="mt-2"></div>
+                                    </div>
+
+                                    <!-- Status -->
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="isActive"
+                                                   th:field="*{isActive}">
+                                            <label class="form-check-label" for="isActive">
+                                                Active (promotion can be used immediately)
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="card mt-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <a href="/admin/promotions" class="btn btn-secondary">
+                                            <i class="bi bi-x-circle"></i> Cancel
+                                        </a>
+                                        <div>
+                                            <a th:href="@{'/admin/promotions/view/' + ${promotion.promotionId}}" class="btn btn-outline-info me-2">
+                                                <i class="bi bi-eye"></i> View Details
+                                            </a>
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="bi bi-check-circle"></i> Update Promotion
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Info Panel -->
+                    <div class="col-lg-4">
+                        <!-- Current Status -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0"><i class="bi bi-info-circle"></i> Current Status</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <div class="border rounded p-2">
+                                            <div class="h5 mb-1" th:text="${promotion.usageCount ?: 0}">0</div>
+                                            <small class="text-muted">Times Used</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="border rounded p-2">
+                                            <div class="h5 mb-1">
+                                                <span th:if="${promotion.usageLimit != null and promotion.usageCount != null}"
+                                                      th:text="${promotion.usageLimit - promotion.usageCount}">0</span>
+                                                <span th:if="${promotion.usageLimit == null}">∞</span>
+                                                <span th:if="${promotion.usageLimit != null and promotion.usageCount == null}"
+                                                      th:text="${promotion.usageLimit}">0</span>
+                                            </div>
+                                            <small class="text-muted">Remaining</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3">
+                                    <div class="d-flex justify-content-between">
+                                        <small>Valid Period:</small>
+                                    </div>
+                                    <div class="text-muted small">
+                                        <strong>From:</strong> <span th:text="${#temporals.format(promotion.startDate, 'MMM dd, yyyy HH:mm')}"></span><br>
+                                        <strong>Until:</strong> <span th:text="${#temporals.format(promotion.endDate, 'MMM dd, yyyy HH:mm')}"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3">
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-2">Status:</span>
+                                        <span th:if="${promotion.isActive}" class="badge bg-success">Active</span>
+                                        <span th:unless="${promotion.isActive}" class="badge bg-secondary">Inactive</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Help -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0"><i class="bi bi-lightbulb"></i> Edit Tips</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-warning small">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <strong>Important:</strong> Changes to active promotions will affect future bookings.
+                                    Existing bookings with this promotion will not be affected.
+                                </div>
+
+                                <div class="small">
+                                    <h6>What you can edit:</h6>
+                                    <ul>
+                                        <li>Promotion details and description</li>
+                                        <li>Validity period (extend or shorten)</li>
+                                        <li>Usage limits (increase only)</li>
+                                        <li>Status (activate/deactivate)</li>
+                                        <li>Promotion image</li>
+                                    </ul>
+                                </div>
+
+                                <div class="small">
+                                    <h6>Best practices:</h6>
+                                    <ul>
+                                        <li>Test changes in a staging environment first</li>
+                                        <li>Notify customers of significant changes</li>
+                                        <li>Keep terms and conditions updated</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Toggle discount field prefix based on type
+        function toggleDiscountFields() {
+            const discountType = document.getElementById('discountType').value;
+            const prefix = document.getElementById('discountPrefix');
+            const maxDiscountField = document.getElementById('maximumDiscount');
+            const maxDiscountContainer = maxDiscountField.closest('.mb-3');
+
+            if (discountType === 'PERCENTAGE') {
+                prefix.textContent = '%';
+                maxDiscountContainer.style.display = 'block';
+            } else if (discountType === 'FIXED_AMOUNT') {
+                prefix.textContent = 'LKR';
+                maxDiscountContainer.style.display = 'none';
+                maxDiscountField.value = '';
+            } else {
+                prefix.textContent = '%';
+                maxDiscountContainer.style.display = 'block';
+            }
+        }
+
+        // Image preview functionality
+        document.getElementById('image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('imagePreview');
+
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                    alert('File size must be less than 5MB');
+                    this.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `
+                        <div class="mt-2">
+                            <strong>New image preview:</strong><br>
+                            <img src="${e.target.result}" class="img-thumbnail" style="max-width: 200px;">
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.innerHTML = '';
+            }
+        });
+
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+
+            if (startDate >= endDate) {
+                e.preventDefault();
+                alert('End date must be after start date.');
+                return;
+            }
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleDiscountFields();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{layout :: layout(~{::title}, ~{::content})}">
+<head>
+    <title th:text="${isEdit != null and isEdit} ? 'Edit Review - Golden Palm Hotel' : 'Add Review - Golden Palm Hotel'">Review</title>
+</head>
+<body>
+<div th:fragment="content">
+    <!-- Hero Section -->
+    <section class="hero-section bg-dark">
+        <div class="container">
+            <div class="text-center">
+                <div class="fade-in-up">
+                    <h1 class="display-4 mb-6 text-golden">
+                        <i class="fas fa-star me-3"></i>
+                        <span th:text="${isEdit != null and isEdit} ? 'Edit Your Review' : 'Write a Review'">Write a Review</span>
+                    </h1>
+                </div>
+                <div class="fade-in-up" style="animation-delay: 0.2s;">
+                    <p class="lead mb-8" th:if="${isEdit == null or !isEdit}">
+                        Share your experience to help other guests make informed decisions
+                    </p>
+                    <p class="lead mb-8 text-warning" th:if="${isEdit != null and isEdit}">
+                        <i class="fas fa-info-circle"></i> Reviews can only be edited within 24 hours of creation
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Review Form Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card shadow-glow">
+                        <div class="card-body p-4">
+                            <!-- Error/Success Messages -->
+                            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-circle me-2"></i><span th:text="${error}"></span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+
+                            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="fas fa-check-circle me-2"></i><span th:text="${success}"></span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+
+                            <!-- Review Form -->
+                            <form th:action="${isEdit != null and isEdit} ? @{/reviews/edit/{id}(id=${review.reviewId})} : @{/reviews/add}"
+                                  method="post" th:object="${review}">
+
+                                <!-- Hidden Fields -->
+                                <input type="hidden" name="roomId" th:value="${roomId != null ? roomId : review.room.roomId}">
+                                <input type="hidden" name="bookingId" th:value="${bookingId}">
+                                <input type="hidden" th:field="*{rating}" id="ratingInput">
+
+                                <!-- Rating -->
+                                <div class="mb-4">
+                                    <label class="form-label text-golden">
+                                        <i class="fas fa-star me-2"></i>Rating <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="rating-container d-flex align-items-center gap-2" id="starRating">
+                                        <span class="star" data-rating="1">&#9733;</span>
+                                        <span class="star" data-rating="2">&#9733;</span>
+                                        <span class="star" data-rating="3">&#9733;</span>
+                                        <span class="star" data-rating="4">&#9733;</span>
+                                        <span class="star" data-rating="5">&#9733;</span>
+                                        <small class="text-muted ms-3" id="ratingText">Click stars to rate</small>
+                                    </div>
+                                </div>
+
+                                <!-- Review Title -->
+                                <div class="mb-4">
+                                    <label for="title" class="form-label">
+                                        <i class="fas fa-heading me-2 text-golden"></i>Review Title
+                                    </label>
+                                    <input type="text" class="form-control" id="title" th:field="*{title}"
+                                           placeholder="Summarize your experience" maxlength="200">
+                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                        <small class="text-muted">Optional - Give your review a catchy title</small>
+                                        <small class="text-muted"><span id="titleCounter">0</span>/200</small>
+                                    </div>
+                                </div>
+
+                                <!-- Review Comment -->
+                                <div class="mb-4">
+                                    <label for="comment" class="form-label">
+                                        <i class="fas fa-comment-dots me-2 text-golden"></i>Your Review <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea class="form-control" id="comment" th:field="*{comment}" rows="8"
+                                              placeholder="Tell us about your experience - room cleanliness, amenities, service, location, etc..." required maxlength="2000"></textarea>
+                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle"></i> Minimum 10 characters required
+                                        </small>
+                                        <small class="text-muted"><span id="commentCounter">0</span>/2000</small>
+                                    </div>
+                                </div>
+
+                                <!-- Verification Badge (if from booking) -->
+                                <div th:if="${bookingId != null}" class="alert alert-info d-flex align-items-center mb-4">
+                                    <i class="fas fa-check-circle-fill me-2 fs-4"></i>
+                                    <div>
+                                        <strong>Verified Stay Review</strong>
+                                        <p class="mb-0 small">This review will be marked as a verified stay, giving it more credibility</p>
+                                    </div>
+                                </div>
+
+                                <!-- Form Actions -->
+                                <div class="d-flex gap-3 justify-content-end">
+                                    <a th:href="@{/reviews/my-reviews}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane me-2"></i>
+                                        <span th:text="${isEdit != null and isEdit} ? 'Update Review' : 'Submit Review'">Submit</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Star Rating Functionality
+        const stars = document.querySelectorAll('.star');
+        const ratingInput = document.getElementById('ratingInput');
+        const ratingText = document.getElementById('ratingText');
+        let selectedRating = /*[[${review.rating}]]*/ 0;
+
+        const ratingDescriptions = {
+            1: 'Poor - Not recommended',
+            2: 'Fair - Below expectations',
+            3: 'Good - Met expectations',
+            4: 'Very Good - Exceeded expectations',
+            5: 'Excellent - Outstanding!'
+        };
+
+        // Initialize rating if editing
+        if (selectedRating > 0) {
+            updateStars(selectedRating);
+        }
+
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                selectedRating = parseInt(this.getAttribute('data-rating'));
+                ratingInput.value = selectedRating;
+                updateStars(selectedRating);
+            });
+
+            star.addEventListener('mouseenter', function() {
+                const hoverRating = parseInt(this.getAttribute('data-rating'));
+                updateStars(hoverRating);
+            });
+        });
+
+        document.getElementById('starRating').addEventListener('mouseleave', function() {
+            updateStars(selectedRating);
+        });
+
+        function updateStars(rating) {
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+
+            if (rating > 0) {
+                ratingText.textContent = ratingDescriptions[rating];
+                ratingText.classList.remove('text-muted');
+                ratingText.classList.add('text-warning', 'fw-bold');
+            } else {
+                ratingText.textContent = 'Click stars to rate';
+                ratingText.classList.remove('text-warning', 'fw-bold');
+                ratingText.classList.add('text-muted');
+            }
+        }
+
+        // Character Counters
+        const titleInput = document.getElementById('title');
+        const titleCounter = document.getElementById('titleCounter');
+        const commentInput = document.getElementById('comment');
+        const commentCounter = document.getElementById('commentCounter');
+
+        // Initialize counters
+        titleCounter.textContent = titleInput.value.length;
+        commentCounter.textContent = commentInput.value.length;
+
+        titleInput.addEventListener('input', function() {
+            titleCounter.textContent = this.value.length;
+        });
+
+        commentInput.addEventListener('input', function() {
+            commentCounter.textContent = this.value.length;
+        });
+
+        // Form Validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            if (selectedRating === 0) {
+                e.preventDefault();
+                alert('Please select a rating before submitting your review.');
+                return false;
+            }
+
+            if (commentInput.value.trim().length < 10) {
+                e.preventDefault();
+                alert('Please write at least 10 characters in your review.');
+                commentInput.focus();
+                return false;
+            }
+
+            return true;
+        });
+    </script>
+
+    <style>
+        .rating-container {
+            font-size: 2rem;
+        }
+
+        .star {
+            color: #ddd !important;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+
+        .star:hover {
+            transform: scale(1.2);
+        }
+
+        .star.active {
+            color: #ffc107 !important;
+        }
+    </style>
+</div>
+</body>
+</html>

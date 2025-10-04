@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -38,6 +39,9 @@ public class BookingService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private PromotionService promotionService;
 
     private static final BigDecimal DEFAULT_ROOM_PRICE = new BigDecimal("100.00");
 
@@ -413,6 +417,162 @@ public class BookingService {
         dto.setCreatedAt(booking.getCreatedAt());
         dto.setUpdatedAt(booking.getUpdatedAt());
 
+        // Add promo code fields
+        dto.setPromoCode(booking.getPromoCode());
+        dto.setDiscountAmount(booking.getDiscountAmount());
+        dto.setOriginalAmount(booking.getOriginalAmount());
+
         return dto;
+    }
+
+    /**
+     * Create booking with promo code support
+     */
+    public BookingResponseDTO createBookingWithPromoCode(BookingRequestDTO request, String promoCode) {
+        validateBookingRequest(request);
+
+        // Get current authenticated user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User must be authenticated to create a booking");
+        }
+
+        String userEmail = authentication.getName();
+        User user = userService.findByEmail(userEmail);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        // Get or create customer profile
+        Customer customer = customerService.getOrCreateCustomerProfile(user);
+
+        // Get room
+        Room room = roomRepository.findById(request.getRoomId())
+                .orElseThrow(() -> new RuntimeException("Room not found"));
+
+        if (!isRoomAvailable(request.getRoomId(), request.getCheckInDate(), request.getCheckOutDate())) {
+            throw new RuntimeException("Room is not available for the selected dates");
+        }
+
+        Booking booking = new Booking();
+        booking.setBookingReference(generateBookingReference());
+        booking.setCustomer(customer);
+        booking.setRoom(room);
+        booking.setCheckInDate(request.getCheckInDate());
+        booking.setCheckOutDate(request.getCheckOutDate());
+        booking.setNumberOfGuests(request.getNumberOfGuests());
+        booking.setSpecialRequests(request.getSpecialRequests());
+        booking.setCustomerNotes(request.getCustomerNotes());
+
+        // Calculate booking details first
+        calculateBookingDetails(booking);
+
+        // Apply promo code if provided
+        if (promoCode != null && !promoCode.trim().isEmpty()) {
+            try {
+                applyPromoCodeToBooking(booking, promoCode, customer);
+            } catch (Exception e) {
+                throw new RuntimeException("Error applying promo code: " + e.getMessage());
+            }
+        }
+
+        // Set initial booking and payment status
+        booking.setBookingStatus(BookingStatus.PENDING_PAYMENT);
+        booking.setPaymentStatus(PaymentStatus.PENDING);
+
+        booking = bookingRepository.save(booking);
+
+        return convertToResponseDTO(booking);
+    }
+
+    /**
+     * Apply promo code to existing booking
+     */
+    public BookingResponseDTO applyPromoCodeToBooking(Long bookingId, String promoCode) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
+
+        if (booking.getBookingStatus() != BookingStatus.PENDING_PAYMENT) {
+            throw new RuntimeException("Can only apply promo codes to pending bookings");
+        }
+
+        if (booking.getPromoCode() != null) {
+            throw new RuntimeException("A promo code has already been applied to this booking");
+        }
+
+        applyPromoCodeToBooking(booking, promoCode, booking.getCustomer());
+        booking = bookingRepository.save(booking);
+
+        return convertToResponseDTO(booking);
+    }
+
+    /**
+     * Remove promo code from booking
+     */
+    public BookingResponseDTO removePromoCodeFromBooking(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
+
+        if (booking.getBookingStatus() != BookingStatus.PENDING_PAYMENT) {
+            throw new RuntimeException("Can only remove promo codes from pending bookings");
+        }
+
+        if (booking.getPromoCode() == null) {
+            throw new RuntimeException("No promo code applied to this booking");
+        }
+
+        // Reset to original amount
+        if (booking.getOriginalAmount() != null) {
+            booking.setTotalAmount(booking.getOriginalAmount());
+        }
+        booking.setPromoCode(null);
+        booking.setDiscountAmount(BigDecimal.ZERO);
+        booking.setOriginalAmount(null);
+
+        booking = bookingRepository.save(booking);
+        return convertToResponseDTO(booking);
+    }
+
+    /**
+     * Validate promo code for a booking
+     */
+    public Map<String, Object> validatePromoCode(String promoCode, Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        Customer customer = booking.getCustomer();
+        if (customer == null) {
+            throw new RuntimeException("Customer not found for this booking");
+        }
+
+        var validationResult = promotionService.validatePromoCode(promoCode, booking.getTotalAmount(), customer.getCustomerId());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("valid", validationResult.isValid());
+
+        if (validationResult.isValid()) {
+            response.put("discountAmount", validationResult.getDiscountAmount());
+            response.put("newTotal", booking.getTotalAmount().subtract(validationResult.getDiscountAmount()));
+            response.put("promotion", validationResult.getPromotion());
+        } else {
+            response.put("errorMessage", validationResult.getErrorMessage());
+        }
+
+        return response;
+    }
+
+    /**
+     * Internal method to apply promo code to booking
+     */
+    private void applyPromoCodeToBooking(Booking booking, String promoCode, Customer customer) {
+        // Validate the promo code
+        var validationResult = promotionService.validatePromoCode(promoCode, booking.getTotalAmount(), customer.getCustomerId());
+
+        if (!validationResult.isValid()) {
+            throw new RuntimeException(validationResult.getErrorMessage());
+        }
+
+        // Apply the promotion to the booking
+        promotionService.applyPromoCode(promoCode, booking, customer);
     }
 }

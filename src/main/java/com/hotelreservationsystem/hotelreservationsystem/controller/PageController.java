@@ -1,9 +1,11 @@
 package com.hotelreservationsystem.hotelreservationsystem.controller;
 
+import com.hotelreservationsystem.hotelreservationsystem.model.Room;
 import com.hotelreservationsystem.hotelreservationsystem.model.User;
 import com.hotelreservationsystem.hotelreservationsystem.model.UserRole;
 import com.hotelreservationsystem.hotelreservationsystem.service.BookingService;
 import com.hotelreservationsystem.hotelreservationsystem.service.CustomerService;
+import com.hotelreservationsystem.hotelreservationsystem.service.ReviewService;
 import com.hotelreservationsystem.hotelreservationsystem.service.RoomService;
 import com.hotelreservationsystem.hotelreservationsystem.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,9 @@ public class PageController {
 
     @Autowired
     private CustomerService customerService;
+
+    @Autowired
+    private ReviewService reviewService;
 
     // Home page
     @GetMapping("/")
@@ -121,6 +126,8 @@ public class PageController {
         return "dashboard";
     }
 
+
+
     // Rooms page
     @GetMapping("/rooms")
     public String rooms(Model model,
@@ -164,6 +171,58 @@ public class PageController {
         }
 
         return "rooms";
+    }
+
+    // Room detail page
+    @GetMapping("/rooms/{roomId}")
+    public String roomDetail(@PathVariable Long roomId, Model model, Authentication authentication) {
+        System.out.println("Room Detail: Processing request for room ID: " + roomId);
+
+        try {
+            var roomOpt = roomService.getRoomById(roomId);
+            if (roomOpt.isEmpty()) {
+                System.out.println("Room Detail: Room not found with ID: " + roomId);
+                return "redirect:/rooms?error=room_not_found";
+            }
+
+            Room room = roomOpt.get();
+            model.addAttribute("room", room);
+            System.out.println("Room Detail: Room found - Room #" + room.getRoomNumber());
+
+            // Get reviews for this room
+            var reviews = reviewService.getApprovedReviewsByRoom(roomId);
+            model.addAttribute("reviews", reviews);
+            System.out.println("Room Detail: Found " + reviews.size() + " reviews");
+
+            // Get room statistics
+            var roomStats = reviewService.getRoomReviewStatistics(roomId);
+            model.addAttribute("roomStats", roomStats);
+            System.out.println("Room Detail: Average rating - " + roomStats.get("averageRating"));
+
+            // Check if logged-in user can review this room
+            if (authentication != null && authentication.isAuthenticated()) {
+                try {
+                    String email = authentication.getName();
+                    User user = userService.findByEmail(email);
+                    if (user != null && UserRole.CUSTOMER.equals(user.getRole())) {
+                        var customer = customerService.getOrCreateCustomerProfile(user);
+                        boolean canReview = reviewService.canCustomerReviewRoom(customer.getCustomerId(), roomId);
+                        model.addAttribute("canReview", canReview);
+                        model.addAttribute("customerId", customer.getCustomerId());
+                        System.out.println("Room Detail: User can review - " + canReview);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Room Detail: Error checking review eligibility - " + e.getMessage());
+                }
+            }
+
+            return "room-detail";
+
+        } catch (Exception e) {
+            System.out.println("Room Detail: Error loading room - " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/rooms?error=room_not_found";
+        }
     }
 
     // Booking page
@@ -516,11 +575,4 @@ public class PageController {
         return "about";
     }
 
-    // Error pages
-    @GetMapping("/error")
-    public String error(Model model) {
-        System.out.println("Error: Processing request");
-        return "error";
-    }
-    
 }

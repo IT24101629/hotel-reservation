@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - User Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <nav class="nav nav-pills mb-4">
+        <a class="nav-link" th:href="@{/admin/dashboard}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a class="nav-link" th:href="@{/admin/rooms}"><i class="bi bi-door-closed"></i> Manage Rooms</a>
+        <a class="nav-link active" th:href="@{/admin/User}"><i class="bi bi-people"></i> Manage User</a>
+        <a class="nav-link" th:href="@{/admin/bookings}"><i class="bi bi-calendar-check"></i> Manage Bookings</a>
+        <a class="nav-link" th:href="@{/admin/promotions}"><i class="bi bi-tag"></i> Manage Promotions</a>
+    </nav>
+    <div class="card">
+        <div class="card-header">
+            <h2 th:if="${staff.userId == null}">Add New User</h2>
+            <h2 th:unless="${staff.userId == null}">Edit User</h2>
+        </div>
+        <div class="card-body">
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+            <form th:action="@{/admin/staff/save}" th:object="${staff}" method="post">
+
+                <input type="hidden" th:field="*{userId}" />
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" th:field="*{username}" required
+                           th:readonly="${staff.userId != null}">
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" th:field="*{email}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="firstName" class="form-label">First Name</label>
+                    <input type="text" class="form-control" id="firstName" th:field="*{firstName}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="lastName" class="form-label">Last Name</label>
+                    <input type="text" class="form-control" id="lastName" th:field="*{lastName}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="passwordHash" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="passwordHash" th:field="*{passwordHash}"
+                           th:placeholder="${staff.userId != null} ? 'Leave blank to keep current password' : ''"
+                           th:required="${staff.userId == null}">
+                </div>
+
+                <div class="mb-3">
+                    <label for="role" class="form-label">Role</label>
+                    <select class="form-select" id="role" th:field="*{role}" required>
+                        <option value="">-- Select Role --</option>
+
+                        <option th:each="roleValue : ${roles}"
+                                th:value="${roleValue}"
+                                th:text="${roleValue.name()}">
+                        </option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-success">Save Staff</button>
+                <a th:href="@{/admin/staff}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
